@@ -24,10 +24,7 @@
                                     <h6 class="mb-1"><?= session()->get('fullname') ?></h6>
                                     <span><?= session()->get('permission_name') ?>แผนก<?= session()->get('position_name') ?></span>
                                 </div>
-                                <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-                                    @csrf
-                                </form>
-                                <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class=" pc-head-link bg-transparent"><i class="fa fa-sign-out"></i></a>
+                                <a href="{{url('/login/logout')}}" class=" pc-head-link bg-transparent"><i class="fa fa-sign-out"></i></a>
                             </div>
                         </div>
                     </div>

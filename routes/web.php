@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\EmailController;
+use App\Http\Controllers\LoginController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -17,23 +18,12 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('login');
 });
+Route::post('/login/auth', [LoginController::class, 'auth'])->name('login.auth');
+Route::get('/login/logout', [LoginController::class, 'logout'])->name('login.logout');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
-
-Route::get('/book', function () {
-    return view('book/index');
-})->middleware(['auth', 'verified'])->name('book.index');
-Route::middleware('auth')->group(function () {
+Route::middleware('auth.admin')->group(function () {
     Route::get('/book', [BookController::class, 'index'])->name('book.index');
     Route::post('/book/save', [BookController::class, 'save'])->name('book.save');
     Route::get('/book/show', [BookController::class, 'show'])->name('book.show');
