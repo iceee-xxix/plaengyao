@@ -5,6 +5,7 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     $('.btn-default').hide();
+    var signature = '{{$signature}}';
     var selectPageTable = document.getElementById('page-select-card');
     var pageTotal = '{{$totalPages}}';
     var pageNumTalbe = 1;
@@ -208,7 +209,7 @@
                                 return $(this).val();
                             }).get();
                             drawMarkSignature(startX - 40, startY + (20 * lineBreakCount), endX, endY);
-                            drawTextHeaderSignature('15px Sarabun', startX + 20, startY, text);
+                            drawTextHeaderSignature('15px Sarabun', startX, startY, text);
 
                             var i = 0;
                             var checkbox_text = '';
@@ -217,19 +218,16 @@
                                 switch (element) {
                                     case '1':
                                         checkbox_text = '({{$users->fullname}})';
-                                        checkbox_x = 0;
                                         break;
                                     case '2':
                                         checkbox_text = '{{$permission_data->permission_name}}';
-                                        checkbox_x = +30;
                                         break;
                                     case '3':
                                         checkbox_text = '{{convertDateToThai(date("Y-m-d"))}}';
-                                        checkbox_x = 0;
                                         break;
                                 }
                                 console.log(checkbox_text);
-                                drawTextHeaderSignature('15px Sarabun', (startX + 20) + checkbox_x, (startY + 160 + (20 * lineBreakCount)) + (20 * i), checkbox_text);
+                                drawTextHeaderSignature('15px Sarabun', startX, (startY + 160 + (20 * lineBreakCount)) + (20 * i), checkbox_text);
                                 i++;
                             });
                         };
@@ -292,7 +290,7 @@
             markCtx.clearRect(0, 0, markCanvas.width, markCanvas.height);
 
             var img = new Image();
-            img.src = 'http://localhost:8000/storage/uploads/users/signature.png';
+            img.src = signature;
             img.onload = function() {
                 markCtx.drawImage(img, startX, startY, 240, 130);
                 imgData = {

@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Book;
+use App\Models\Log_status_book;
 use App\Models\Permission;
 use App\Models\Position;
 use App\Models\User;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 use setasign\Fpdi\Tcpdf\Fpdi;
 use Illuminate\Support\Facades\Auth;
 use Webklex\IMAP\Facades\Client;
@@ -24,6 +26,7 @@ class BookController extends Controller
     public $permission_id;
     public $position_id;
     public $position_name;
+    public $signature;
     public function __construct()
     {
         $this->middleware(function ($request, $next) {
@@ -34,7 +37,8 @@ class BookController extends Controller
             $this->permission_data = $sql;
             $sql = Position::where('id', $this->users->position_id)->first();
             $this->position_id = $this->users->position_id;
-            $this->position_name = $sql->position_name;
+            $this->position_name = ($sql != null) ? $sql->position_name : '';
+            $this->signature = url("/storage/users/" . auth()->user()->signature);
             return $next($request);
         });
     }
@@ -72,13 +76,43 @@ class BookController extends Controller
         $book->created_by = $this->users->id;
         $book->updated_by = $this->users->id;
         $book->status = 1;
-        if ($request->hasFile('file-input')) {
-            $file = $request->file('file-input');
-            $filePath = $file->store('uploads');
+        if (isset($request['select-email'])) {
+            $cm = new ClientManager();
+            $client = $cm->make([
+                'host'          => env('IMAP_HOST'),
+                'port'          => env('IMAP_PORT'),
+                'encryption'    => env('IMAP_ENCRYPTION'),
+                'validate_cert' => env('IMAP_VALIDATE_CERT'),
+                'username'      => env('IMAP_USERNAME'),
+                'password'      => env('IMAP_PASSWORD'),
+                'protocol'      => 'imap'
+            ]);
+
+            $client->connect();
+
+            $folder = $client->getFolder('INBOX');
+            $message = $folder->query()->uid($request['select-email'])->get();
+            if ($message) {
+                $message = $message->first();
+                if ($message->hasAttachments()) {
+                    $attachments = $message->getAttachments();
+                    foreach ($attachments as $attachment) {
+                        $filePath =  'uploads/' . time() . '.' . $attachment->getExtension();
+                        // $attachment->save(storage_path('app/attachments/' . $newFileName));
+                        $attachment->save(storage_path('app/public/uploads/'));
+                        rename(storage_path('app/public/uploads/' . $attachment->name), storage_path('app/public/' . $filePath));
+                    }
+                }
+            }
+        } else {
+            if ($request->hasFile('file-input')) {
+                $file = $request->file('file-input');
+                $filePath = $file->store('uploads');
+            }
         }
         if ($request->hasFile('file-attachments')) {
             $attachments = $request->file('file-attachments');
-            $filePathAttachments = $attachments->store('uploads');
+            $filePathAttachments = $attachments->store('attachments');
         }
         $book->file = ($filePath) ? $filePath : '';
         $book->fileAttachments = ($filePathAttachments) ? $filePathAttachments : '';
@@ -89,18 +123,18 @@ class BookController extends Controller
 
     public function show()
     {
-        if ($this->permission_id == '1') {
-            $data['extends'] = 'book.js.show';
-        } else if ($this->permission_id == '2') {
+        if ($this->permission_id == '3' || $this->permission_id == '4') {
             $data['extends'] = 'book.js.admin';
-        } else if ($this->permission_id == '3') {
-            $data['extends'] = 'book.js.manager';
-        } else if ($this->permission_id == '4') {
-            $data['extends'] = 'book.js.bailiff';
         } else if ($this->permission_id == '5') {
-            $data['extends'] = 'book.js.mayor_1';
+            $data['extends'] = 'book.js.manager';
         } else if ($this->permission_id == '6') {
+            $data['extends'] = 'book.js.bailiff';
+        } else if ($this->permission_id == '7') {
+            $data['extends'] = 'book.js.mayor_1';
+        } else if ($this->permission_id == '8') {
             $data['extends'] = 'book.js.mayor_2';
+        } else {
+            $data['extends'] = 'book.js.show';
         }
         $data['function_key'] = __FUNCTION__;
         $data['permission_id'] = $this->permission_id;
@@ -108,14 +142,17 @@ class BookController extends Controller
         $data['position_name'] = $this->position_name;
         $data['permission_data'] = $this->permission_data;
         $data['users'] = $this->users;
+        $data['signature'] = $this->signature;
         Session::forget('keyword');
         $book = new Book;
-        if ($this->permission_id == '2') {
-            $book = $book->where('books.position_id', $this->position_id);
+        if ($this->permission_id == '1' || $this->permission_id == '2') {
+            $book = $book->select('books.*', 'users.fullname')->whereIn('status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->join('users', 'books.selectBookFrom', '=', 'users.id')->limit(5)->get();
+        } else {
+            $book = $book->where('log_status_books.position_id', $this->position_id);
+            $book = $book->select('books.*', 'users.fullname', 'log_status_books.status', 'log_status_books.file')->whereIn('log_status_books.status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->join('users', 'books.selectBookFrom', '=', 'users.id')->join('log_status_books', 'books.id', '=', 'log_status_books.book_id')->limit(5)->get();
         }
-        $book = $book->select('books.*', 'users.fullname')->whereIn('status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->join('users', 'books.selectBookFrom', '=', 'users.id')->limit(5)->get();
         foreach ($book as &$rec) {
-            $rec->showTime = date('H:i', strtotime($rec->created_at));
+            $rec->showTime = date('H:i', strtotime($rec->inputRecieveDate));
             $rec->url = url("storage/" . $rec->file);
         }
         $book_count = Book::join('users', 'books.selectBookFrom', '=', 'users.id')->count();
@@ -143,20 +180,24 @@ class BookController extends Controller
                 ->orWhereRaw('inputBookref like "%' . $search . '%"')
                 ->orWhereRaw('inputContent like "%' . $search . '%"')
                 ->orWhereRaw('inputNote like "%' . $search . '%"');
-            if ($this->permission_id == '2') {
-                $query = $query->where('books.position_id', $this->position_id);
+            if ($this->permission_id == '1' || $this->permission_id == '2') {
+                $book = $query->select('books.*', 'users.fullname')->whereIn('status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->join('users', 'books.selectBookFrom', '=', 'users.id')->limit(5)->offset($pages)->get();
+            } else {
+                $query = $query->where('log_status_books.position_id', $this->position_id);
+                $book = $query->select('books.*', 'users.fullname', 'log_status_books.status', 'log_status_books.file')->whereIn('log_status_books.status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->join('users', 'books.selectBookFrom', '=', 'users.id')->join('log_status_books', 'books.id', '=', 'log_status_books.book_id')->limit(5)->offset($pages)->get();
             }
-            $book = $query->select('books.*', 'users.fullname')->whereIn('status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->join('users', 'books.selectBookFrom', '=', 'users.id')->limit(5)->offset($pages)->get();
         } else {
             $query = new Book;
-            if ($this->permission_id == '2') {
-                $query = $query->where('books.position_id', $this->position_id);
+            if ($this->permission_id == '1' || $this->permission_id == '2') {
+                $book = $query->select('books.*', 'users.fullname')->whereIn('status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->join('users', 'books.selectBookFrom', '=', 'users.id')->limit(5)->offset($pages)->get();
+            } else {
+                $query = $query->where('log_status_books.position_id', $this->position_id);
+                $book = $query->select('books.*', 'users.fullname', 'log_status_books.status', 'log_status_books.file')->whereIn('log_status_books.status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->join('users', 'books.selectBookFrom', '=', 'users.id')->join('log_status_books', 'books.id', '=', 'log_status_books.book_id')->limit(5)->offset($pages)->get();
             }
-            $book = $query->select('books.*', 'users.fullname')->whereIn('status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->join('users', 'books.selectBookFrom', '=', 'users.id')->limit(5)->offset($pages)->get();
         }
         if (!empty($book)) {
             foreach ($book as &$rec) {
-                $rec->showTime = date('H:i', strtotime($rec->created_at));
+                $rec->showTime = date('H:i', strtotime($rec->inputRecieveDate));
                 $rec->url = url("storage/" . $rec->file);
             }
             $data['book'] = $book;
@@ -187,35 +228,47 @@ class BookController extends Controller
                 ->orWhereRaw('inputBookref like "%' . $search . '%"')
                 ->orWhereRaw('inputContent like "%' . $search . '%"')
                 ->orWhereRaw('inputNote like "%' . $search . '%")');
-            if ($this->permission_id == '2') {
-                $query = $query->where('books.position_id', $this->position_id);
+            if ($this->permission_id == '1' || $this->permission_id == '2') {
+            } else {
+                $query = $query->where('log_status_books.position_id', $this->position_id);
             }
         } else {
             $query = new Book;
-            if ($this->permission_id == '2') {
-                $query = $query->where('books.position_id', $this->position_id);
+            if ($this->permission_id == '1' || $this->permission_id == '2') {
+            } else {
+                $query = $query->where('log_status_books.position_id', $this->position_id);
             }
         }
-        $book = $query->select('books.*', 'users.fullname')->whereIn('status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->join('users', 'books.selectBookFrom', '=', 'users.id')->limit(5)->offset($pages)->get();
+        if ($this->permission_id == '1' || $this->permission_id == '2') {
+            $book = $query->select('books.*', 'users.fullname')->whereIn('status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->join('users', 'books.selectBookFrom', '=', 'users.id')->limit(5)->offset($pages)->get();
+        } else {
+            $book = $query->select('books.*', 'users.fullname', 'log_status_books.status', 'log_status_books.file')->whereIn('log_status_books.status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->join('users', 'books.selectBookFrom', '=', 'users.id')->join('log_status_books', 'books.id', '=', 'log_status_books.book_id')->limit(5)->offset($pages)->get();
+        }
         if (!empty($search)) {
             $query = Book::whereRaw('inputSubject like "%' . $search . '%"')
                 ->orWhereRaw('inputBookto like "%' . $search . '%"')
                 ->orWhereRaw('inputBookref like "%' . $search . '%"')
                 ->orWhereRaw('inputContent like "%' . $search . '%"')
                 ->orWhereRaw('inputNote like "%' . $search . '%"');
-            if ($this->permission_id == '2') {
+            if ($this->permission_id == '1' || $this->permission_id == '2') {
+            } else {
                 $query = $query->where('books.position_id', $this->position_id);
             }
         } else {
             $query = new Book;
-            if ($this->permission_id == '2') {
+            if ($this->permission_id == '1' || $this->permission_id == '2') {
+            } else {
                 $query = $query->where('books.position_id', $this->position_id);
             }
         }
-        $book_count = $query->whereIn('status', $this->permission)->join('users', 'books.selectBookFrom', '=', 'users.id')->count();
+        if ($this->permission_id == '1' || $this->permission_id == '2') {
+            $book_count = $query->whereIn('status', $this->permission)->join('users', 'books.selectBookFrom', '=', 'users.id')->count();
+        } else {
+            $book_count = $query->whereIn('log_status_books.status', $this->permission)->join('users', 'books.selectBookFrom', '=', 'users.id')->join('log_status_books', 'books.id', '=', 'log_status_books.book_id')->count();
+        }
         if (!empty($book)) {
             foreach ($book as &$rec) {
-                $rec->showTime = date('H:i', strtotime($rec->created_at));
+                $rec->showTime = date('H:i', strtotime($rec->inputRecieveDate));
                 $rec->url = url("storage/" . $rec->file);
             }
             $data['totalPages'] = (int)ceil($book_count / 5);
@@ -309,9 +362,25 @@ class BookController extends Controller
         if (!empty($book)) {
             $update = Book::find($id);
             $update->status = 3;
-            $update->position_id = $position_id;
             $update->updated_by = $this->users->id;
             $update->updated_at = date('Y-m-d H:i:s');
+            foreach ($position_id as $value) {
+                $filePath = storage_path('app/public/' . $book->file);
+                $insert = new Log_status_book();
+                $destinationDirectory = storage_path('app/public/' . $value . '/' . $book->file);
+                if (!File::exists(storage_path('app/public/' . $value . '/uploads'))) {
+                    File::makeDirectory(storage_path('app/public/' . $value . '/uploads'), 0777, true); // สร้างโฟลเดอร์ใหม่
+                }
+                if (File::exists($filePath)) {
+                    File::copy($filePath, $destinationDirectory);
+                }
+                $insert->book_id = $id;
+                $insert->status = 3;
+                $insert->datetime = date('Y-m-d H:i:s');
+                $insert->file = $value . '/' . $book->file;
+                $insert->position_id = $value;
+                $insert->save();
+            }
             if ($update->save()) {
                 $data['status'] = true;
                 $data['message'] = 'แทงเรื่องเรียบร้อยแล้ว';
@@ -331,9 +400,8 @@ class BookController extends Controller
         $query = new Book;
         $book = $query->where('id', $id)->first();
         if (!empty($book)) {
-            $update = Book::find($id);
+            $update = Log_status_book::where('position_id', $this->position_id)->where('book_id', $id)->first();
             $update->status = 4;
-            $update->updated_by = $this->users->id;
             $update->updated_at = date('Y-m-d H:i:s');
             $update->adminBookNumber = adminNumber();
             $update->adminDated = date('Y-m-d H:i:s');
@@ -343,7 +411,7 @@ class BookController extends Controller
                     'adminDated' => date('Y-m-d H:i:s'),
                     'file' => $book->file
                 ];
-                $this->editPdf_admin($positionX, $positionY, $pages, $data);
+                $this->editPdf_admin($positionX, $positionY, $pages, $update);
                 $data['status'] = true;
                 $data['message'] = 'ลงบันทึกเวลาเรียบร้อยแล้ว';
             }
@@ -416,7 +484,7 @@ class BookController extends Controller
 
     public function checkbox_send()
     {
-        $txt = '';
+        $txt = '<div class="row d-flex align-items-start">';
         $get_users = User::select('users.*', 'permissions.permission_name')
             ->where('permission_id', $this->permission_data->parent_id)
             ->join('permissions', 'permissions.id', '=', 'users.permission_id')
@@ -425,12 +493,12 @@ class BookController extends Controller
         $count = User::where('permission_id', $this->permission_data->parent_id)->where('position_id', $this->position_id)->count();
         if (!empty($get_users)) {
             for ($i = 0; $i < $count; $i++) {
-                if ($i > 0) {
-                    $txt .= '<br>';
-                }
-                $txt .= '<div><input type="checkbox" name="flexCheckChecked[]" id="flexCheckChecked' . $get_users[$i]->id . '" value="' . $get_users[$i]->id . '" class="form-check-input"><label for="flexCheckChecked' . $get_users[$i]->id . '">' . $get_users[$i]->fullname . ' (' . $get_users[$i]->permission_name . ')' . '</label></div>';
+                $txt .= '<div class="col-1 mb-3"></div><div class="col-11 mb-2">';
+                $txt .= '<input type="checkbox" name="flexCheckChecked[]" id="flexCheckChecked' . $get_users[$i]->id . '" value="' . $get_users[$i]->id . '" class="form-check-input"><label style="margin-left:5px;" for="flexCheckChecked' . $get_users[$i]->id . '">' . $get_users[$i]->fullname . ' (' . $get_users[$i]->permission_name . ')' . '</label>';
+                $txt .= '</div>';
             }
         }
+        $txt .= '</div>';
         return response()->json($txt);
     }
 
@@ -445,10 +513,9 @@ class BookController extends Controller
         $query = new Book;
         $book = $query->where('id', $id)->first();
         if (!empty($book)) {
-            $update = Book::find($id);
+            $update = Log_status_book::where('position_id', $this->position_id)->where('book_id', $id)->first();
             $update->status = $status;
             $update->parentUsers = $users_id;
-            $update->updated_by = $this->users->id;
             $update->updated_at = date('Y-m-d H:i:s');
             if ($update->save()) {
                 $data['status'] = true;
@@ -490,12 +557,11 @@ class BookController extends Controller
         $input = $request->input();
         $book = Book::where('id', $input['id'])->first();
         if (!empty($book)) {
-            $update = Book::find($input['id']);
+            $update = Log_status_book::where('position_id', $this->position_id)->where('book_id', $input['id'])->first();
             $update->status = 5;
-            $update->updated_by = $this->users->id;
             $update->updated_at = date('Y-m-d H:i:s');
             if ($update->save()) {
-                $this->editPdf_signature($input['positionX'], $input['positionY'], $input['pages'], $book, $input['text'], $input['checkedValues']);
+                $this->editPdf_signature($input['positionX'], $input['positionY'], $input['pages'], $update, $input['text'], $input['checkedValues']);
                 $data['status'] = true;
                 $data['message'] = 'ลงบันทึกเกษียณหนังสือเรียบร้อย';
             }
@@ -544,20 +610,17 @@ class BookController extends Controller
                     switch ($value) {
                         case '1':
                             $checkbox_text = '(' . $this->users->fullname . ')';
-                            $checkbox_x = 0;
                             break;
                         case '2':
                             $checkbox_text = $this->permission_data->permission_name;
-                            $checkbox_x = -8;
                             break;
                         case '3':
                             $checkbox_text = convertDateToThai(date("Y-m-d"));
-                            $checkbox_x = +1;
                             break;
                     }
-                    $pdf->Text($x - $checkbox_x, $y + 35 + (5 * $lineCount) + (5 * $key), $checkbox_text);
+                    $pdf->Text($x, $y + 35 + (5 * $lineCount) + (5 * $key), $checkbox_text);
                 }
-                $pdf->Image(public_path('storage/uploads/users/signature.png'), $x - 13, $y + 3 + (5 * $lineCount), 65, 30);
+                $pdf->Image(public_path('storage/users/' . auth()->user()->signature), $x - 13, $y + 3 + (5 * $lineCount), 65, 30);
             }
         }
 
@@ -572,57 +635,16 @@ class BookController extends Controller
         $input = $request->input();
         $book = Book::where('id', $input['id'])->first();
         if (!empty($book)) {
-            $update = Book::find($input['id']);
+            $update = Log_status_book::where('position_id', $this->position_id)->where('book_id', $input['id'])->first();
             $update->status = $input['status'];
-            $update->updated_by = $this->users->id;
             $update->updated_at = date('Y-m-d H:i:s');
             if ($update->save()) {
-                $this->editPdf_SignatureAll($input['positionX'], $input['positionY'], $input['pages'], $book);
+                $this->editPdf_signature($input['positionX'], $input['positionY'], $input['pages'], $update, $input['text'], $input['checkedValues']);
                 $data['status'] = true;
                 $data['message'] = 'ลงบันทึกลายเซ็นเรียบร้อยแล้ว';
             }
         }
         return response()->json($data);
-    }
-
-    public function editPdf_SignatureAll($x, $y, $pages, $data)
-    {
-        error_reporting(E_ALL & ~E_WARNING);
-        $pdf = new Fpdi();
-        $filePath = public_path('/storage/' . $data['file']);
-
-        if (!file_exists($filePath)) {
-            return 'File not found!';
-        }
-
-        $pdf = new Fpdi();
-
-        $pageCount = $pdf->setSourceFile($filePath);
-
-        for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
-            $templateId = $pdf->importPage($pageNo);
-            $pdf->AddPage();
-            $pdf->useTemplate($templateId);
-
-            if ($pageNo == $pages) {
-
-                $fontPath = resource_path('fonts/sarabunextralight.php');
-                $pdf->AddFont('sarabunextralight', '', $fontPath);
-                $pdf->setTextColor(0, 0, 255);
-                $pdf->setDrawColor(0, 0, 255);
-                $x = ($x / 1.5) * 0.3528;
-                $y = ($y / 1.5) * 0.3528;
-                $pdf->SetFont('sarabunextralight', '', 10);
-
-                $pdf->Text($x, $y + 35 + (5 * 0), '(' . $this->users->fullname . ')');
-                $pdf->Text($x + 3, $y + 35 + (5 * 1), $this->permission_data->permission_name);
-                $pdf->Text($x - 1, $y + 35 + (5 * 2), convertDateToThai(date("Y-m-d")));
-                $pdf->Image(public_path('storage/uploads/users/signature.png'), $x - 13, $y + 3, 65, 30);
-            }
-        }
-
-        $outputPath = public_path('/storage/' . $data->file);
-        $pdf->Output($outputPath, 'F');
     }
 
     public function getEmail()
@@ -641,22 +663,33 @@ class BookController extends Controller
         $client->connect();
 
         $folder = $client->getFolder('INBOX');
+        $totalMessages = $folder->query()->all()->count();
         $messages = $folder->query()->all()->get();
 
-        foreach ($messages as $message) {
-            dd($message);
-            echo $message->getSubject() . '<br>';
-            echo $message->getTextBody() . '<br>';
-            if ($message->hasAttachments()) {
-                $attachments = $message->getAttachments();
+        $data = [
+            'data' => [],
+            'status' => false,
+            'total' => $totalMessages
+        ];
+        if ($totalMessages > 0) {
+            foreach ($messages as $message) {
+                $uid = $message->getUid();
+                $item['uid'] = $uid . '';
+                $item['title'] = $message->getSubject() . '';
+                $item['sender'] = $message->getFrom() . '';
+                $item['date'] = DateThai($message->getDate() . '');
+                if ($message->hasAttachments()) {
+                    $attachments = $message->getAttachments();
 
-                foreach ($attachments as $attachment) {
-                    // $attachment->save(storage_path('app/attachments/'));
-                    echo 'Attachment saved: ' . $attachment->name . '<br>';
+                    foreach ($attachments as $attachment) {
+                        $url = 'https://webmail.plaengyao.go.th/roundcube/?_task=mail&_frame=1&_mbox=INBOX&_uid=' . $uid . '&_part=2&_action=get&_extwin=1';
+                        $item['url'] = '<a href="' . $url . '" target="_blank"><i class="fa fa-envelope-open-o"></i></a>';
+                    }
                 }
-            } else {
-                echo 'No attachments.<br>';
+                $data['data'][] = $item;
             }
+            $data['status'] = true;
         }
+        return response()->json($data);
     }
 }

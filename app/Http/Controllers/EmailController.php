@@ -26,21 +26,23 @@ class EmailController extends Controller
 
         $folder = $client->getFolder('INBOX');
         $messages = $folder->query()->all()->get();
+        $totalMessages = $folder->query()->all()->count();
 
         foreach ($messages as $message) {
-            dd($message);
-            echo $message->getSubject() . '<br>';
-            echo $message->getTextBody() . '<br>';
+            $uid = $message->getUid();
+            $data['title'] = $message->getSubject() . '';
+            $data['sender'] = $message->getFrom() . '';
+            $data['date'] = $message->getDate() . '';
             if ($message->hasAttachments()) {
                 $attachments = $message->getAttachments();
 
                 foreach ($attachments as $attachment) {
-                    $attachment->save(storage_path('app/attachments/'));
-                    echo 'Attachment saved: ' . $attachment->name . '<br>';
+                    $url = 'https://webmail.plaengyao.go.th/roundcube/?_task=mail&_frame=1&_mbox=INBOX&_uid=' . $uid . '&_part=2&_action=get&_extwin=1';
+                    $data['url'] = '<a href="' . $url . '" target="_blank">ไฟล์</a>';
+                    // $attachment->save(storage_path('app/attachments/'));
                 }
-            } else {
-                echo 'No attachments.<br>';
             }
+            dd($data);
         }
     }
 }

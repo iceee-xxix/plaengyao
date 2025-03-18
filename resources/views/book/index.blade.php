@@ -243,10 +243,11 @@
                     <table id="tableEmail" class="display w-100">
                         <thead>
                             <tr>
+                                <th>เลือก</th>
                                 <th>หัวเรื่อง</th>
                                 <th>ผู้ส่ง</th>
                                 <th>เวลา</th>
-                                <th>ไฟล์</th>
+                                <th></th>
                             </tr>
                         </thead>
                     </table>

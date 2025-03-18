@@ -75,6 +75,7 @@
     $('#selectImport').change(function(e) {
         e.preventDefault();
         var select = $(this).val();
+        $('input[name="select-email"]').prop('checked', false);
         if (select == 1) {
             $('#uploadDiv').show();
             $('#dataTableDiv').hide();
@@ -82,30 +83,40 @@
             $('#uploadDiv').hide();
             $('#dataTableDiv').show();
         }
-        console.log(select);
     });
     $(document).ready(function() {
-        $(document).ready(function() {
-            $('#tableEmail').DataTable({
-                ajax: {
-                    url: '/book/getEmail',
-                    contentType: 'application/json',
-                    type: 'get',
+        $('#tableEmail').DataTable({
+            ajax: {
+                url: '/book/getEmail',
+                contentType: 'application/json',
+                type: 'get',
+            },
+            order: [
+                [3, 'desc']
+            ],
+            columns: [{
+                    data: null,
+                    render: function(data, type, row) {
+                        return '<input type="radio" class="row-radio" name="select-email" value="' + row.uid + '">';
+                    },
+                    class: 'text-center',
+                }, {
+                    data: 'title',
                 },
-                columns: [{
-                        data: 'name'
-                    },
-                    {
-                        data: 'date_import',
-                        class: 'text-center'
-                    },
-                    {
-                        data: 'action',
-                        class: 'text-center',
-                        orderable: false
-                    },
-                ]
-            });
+                {
+                    data: 'sender',
+                    class: 'text-center',
+                },
+                {
+                    data: 'date',
+                    class: 'text-center',
+                },
+                {
+                    data: 'url',
+                    class: 'text-center',
+                    orderable: false,
+                }
+            ]
         });
     });
 </script>

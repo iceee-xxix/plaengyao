@@ -5,6 +5,7 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     $('.btn-default').hide();
+    var signature = '{{$signature}}';
     var selectPageTable = document.getElementById('page-select-card');
     var pageTotal = '{{$totalPages}}';
     var pageNumTalbe = 1;
@@ -157,7 +158,7 @@
             markCtx.clearRect(0, 0, markCanvas.width, markCanvas.height);
 
             var img = new Image();
-            img.src = 'http://localhost:8000/storage/uploads/users/signature.png';
+            img.src = signature;
             img.onload = function() {
                 markCtx.drawImage(img, startX, startY, 240, 130);
                 imgData = {
@@ -191,39 +192,87 @@
                 markCtx.fillText(lines[i], startX, startY + (i * lineHeight));
             }
         }
-        $('#manager-sinature').click(function(e) {
+        $('#modalForm').on('submit', function(e) {
             e.preventDefault();
-            resetMarking();
-            removeMarkListener();
-            document.getElementById('manager-save').disabled = false;
+            var formData = new FormData(this);
+            $('#exampleModal').modal('hide');
+            Swal.showLoading();
+            $.ajax({
+                type: "post",
+                url: "/book/confirm_signature",
+                data: formData,
+                dataType: "json",
+                contentType: false,
+                processData: false,
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    if (response.status) {
+                        $('#exampleModal').modal('hide');
+                        setTimeout(() => {
+                            swal.close();
+                        }, 1000);
+                        resetMarking();
+                        removeMarkListener();
+                        document.getElementById('manager-save').disabled = false;
 
-            markEventListener = function(e) {
-                var markCanvas = document.getElementById('mark-layer');
-                var markCtx = markCanvas.getContext('2d');
-                var rect = markCanvas.getBoundingClientRect();
-                var startX = (e.clientX - rect.left);
-                var startY = (e.clientY - rect.top);
+                        markEventListener = function(e) {
+                            var markCanvas = document.getElementById('mark-layer');
+                            var markCtx = markCanvas.getContext('2d');
+                            var rect = markCanvas.getBoundingClientRect();
+                            var startX = (e.clientX - rect.left);
+                            var startY = (e.clientY - rect.top);
 
-                var endX = startX + 213;
-                var endY = startY + 115;
+                            var endX = startX + 213;
+                            var endY = startY + 115;
 
-                markCoordinates = {
-                    startX,
-                    startY,
-                    endX,
-                    endY
-                };
-                $('#positionX').val(startX);
-                $('#positionY').val(startY);
+                            markCoordinates = {
+                                startX,
+                                startY,
+                                endX,
+                                endY
+                            };
+                            $('#positionX').val(startX);
+                            $('#positionY').val(startY);
 
-                drawMarkSignature(startX - 50, startY, endX, endY);
-                drawTextHeaderSignature('15px Sarabun', (startX), (startY + 160) + (20 * 0), '({{$users->fullname}})');
-                drawTextHeaderSignature('15px Sarabun', (startX + 15), (startY + 160) + (20 * 1), '{{$permission_data->permission_name}}');
-                drawTextHeaderSignature('15px Sarabun', (startX), (startY + 160) + (20 * 2), '{{convertDateToThai(date("Y-m-d"))}}');
-            };
+                            var text = $('#modal-text').val();
+                            var lineBreakCount = countLineBreaks(text);
+                            var checkedValues = $('input[type="checkbox"]:checked').map(function() {
+                                return $(this).val();
+                            }).get();
+                            drawMarkSignature(startX - 40, startY + (20 * lineBreakCount), endX, endY);
+                            drawTextHeaderSignature('15px Sarabun', startX, startY, text);
 
-            var markCanvas = document.getElementById('mark-layer');
-            markCanvas.addEventListener('click', markEventListener);
+                            var i = 0;
+                            var checkbox_text = '';
+                            var checkbox_x = 0;
+                            checkedValues.forEach(element => {
+                                switch (element) {
+                                    case '1':
+                                        checkbox_text = '({{$users->fullname}})';
+                                        break;
+                                    case '2':
+                                        checkbox_text = '{{$permission_data->permission_name}}';
+                                        break;
+                                    case '3':
+                                        checkbox_text = '{{convertDateToThai(date("Y-m-d"))}}';
+                                        break;
+                                }
+                                console.log(checkbox_text);
+                                drawTextHeaderSignature('15px Sarabun', startX, (startY + 160 + (20 * lineBreakCount)) + (20 * i), checkbox_text);
+                                i++;
+                            });
+                        };
+
+                        var markCanvas = document.getElementById('mark-layer');
+                        markCanvas.addEventListener('click', markEventListener);
+                    } else {
+                        $('#exampleModal').modal('hide');
+                        Swal.fire("", response.message, "error");
+                    }
+                }
+            });
         });
     }
 
@@ -376,6 +425,10 @@
         var positionX = $('#positionX').val();
         var positionY = $('#positionY').val();
         var pages = $('#page-select').find(":selected").val();
+        var text = $('#modal-text').val();
+        var checkedValues = $('input[type="checkbox"]:checked').map(function() {
+            return $(this).val();
+        }).get();
         if (id != '' && positionX != '' && positionY != '') {
             Swal.fire({
                 title: "ยืนยันการลงลายเซ็น",
@@ -394,6 +447,8 @@
                             positionY: positionY,
                             pages: pages,
                             status: 7,
+                            text: text,
+                            checkedValues: checkedValues
                         },
                         dataType: "json",
                         headers: {
@@ -570,5 +625,64 @@
             Swal.fire("", "กรุณาเลือกตำแหน่งเกษียณหนังสือ", "info");
         }
     });
+    $(document).ready(function() {
+        $('#manager-sinature').click(function(e) {
+            e.preventDefault();
+            $('#exampleModal').modal('show');
+        });
+        $('#exampleModal').on('show.bs.modal', function(event) {
+            $('input[type="password"]').val('');
+            $('textarea').val('');
+        });
+    });
 </script>
+<div class="modal modal-lg fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="modalForm">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">เซ็นหนังสือ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3 row">
+                        <label for="inputPassword" class="col-sm-2 col-form-label"><span class="req">*</span>ข้อความเซ็นหนังสือ :</label>
+                        <div class="col-sm-10">
+                            <textarea rows="4" class="form-control" name="modal-text" id="modal-text"></textarea>
+                        </div>
+                    </div>
+                    <div class="mb-3 row">
+                        <div class="col-2">
+                        </div>
+                        <div class="col-sm-10 d-flex justify-content-center text-center">
+                            ({{$users->fullname}})<br>
+                            {{$permission_data->permission_name}}<br>
+                            {{convertDateToThai(date("Y-m-d"))}}
+                        </div>
+                    </div>
+                    <div class="mb-3 row">
+                        <label for="inputPassword" class="col-sm-2 col-form-label"><span class="req">*</span>รหัสผ่านเกษียน :</label>
+                        <div class="col-sm-10">
+                            <input type="password" class="form-control" id="modal-Password" name="modal-Password">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <label for="inputPassword" class="col-sm-2 col-form-label"><span class="req">*</span>แสดงผล :</label>
+                        <div class="col-sm-10 d-flex align-items-center">
+                            <ul class="list-group list-group-horizontal">
+                                <li class="list-group-item"><input class="form-check-input me-1" type="checkbox" name="modal-check[]" value="1" checked>ชื่อ-นามสกุล</li>
+                                <li class="list-group-item"><input class="form-check-input me-1" type="checkbox" name="modal-check[]" value="2" checked>ตำแหน่ง</li>
+                                <li class="list-group-item"><input class="form-check-input me-1" type="checkbox" name="modal-check[]" value="3" checked>วันที่</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" id="submit-modal" class="btn btn-primary">ตกลง</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection

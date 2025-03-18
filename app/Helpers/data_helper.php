@@ -2,6 +2,7 @@
 
 use App\Models\Book;
 use App\Models\BookModel;
+use App\Models\Log_status_book;
 
 function status_helper($data)
 {
@@ -142,9 +143,9 @@ function convertTimeToThai($time)
 }
 
 function adminNumber(){
-    $books = Book::orderBy('adminBooknumber', 'desc')->first();
+    $books = Log_status_book::where('position_id',auth()->user()->position_id)->orderBy('adminBooknumber', 'desc')->first();
     if ($books) {
-        $adminBooknumber = $books->adminBooknumber + 1;
+        $adminBooknumber = $books->adminBookNumber + 1;
     } else {
         $adminBooknumber = 1;
     }

@@ -84,6 +84,22 @@
                     </div>
                 </div>
             </a>
+            <!-- <div class="card border-dark mb-2">
+                <div class="card-header text-dark fw-bold">
+                    <div class="row d-flex align-items-center">
+                        <div class="col-10">{{$rec->inputSubject}}</div>
+                        <div class="col-2 fw-bold"><button type="button" class="btn btn-sm btn-outline-dark"><i class="fa fa-search"></i></button></div>
+                    </div>
+                </div>
+                <a href="javascript:void(0)" onclick="openPdf('{{$rec->url}}','{{$rec->id}}','{{$rec->status}}')">
+                    <div class="card-body text-dark">
+                        <div class="row">
+                            <div class="col-9">{{ $rec->fullname }}</div>
+                            <div class="col-3 fw-bold">{{ $rec->showTime }} น.</div>
+                        </div>
+                    </div>
+                </a>
+            </div> -->
             @endforeach
         </div>
         <div class="d-flex justify-content-end mt-2">

@@ -4,6 +4,7 @@
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
+    var permission_id = '{{$permission_id}}';
     var selectPageTable = document.getElementById('page-select-card');
     var pageTotal = '{{$totalPages}}';
     var pageNumTalbe = 1;
@@ -211,12 +212,14 @@
         $('#positionX').val('');
         $('#positionY').val('');
         document.getElementById('add-stamp').disabled = true;
-        if (status == 1) {
-            $('#add-stamp').show();
-            $('#save-stamp').show();
-        }
-        if (status == 2) {
-            $('#send-to').show();
+        if (permission_id != '1') {
+            if (status == 1) {
+                $('#add-stamp').show();
+                $('#save-stamp').show();
+            }
+            if (status == 2) {
+                $('#send-to').show();
+            }
         }
         resetMarking();
         removeMarkListener();
@@ -385,8 +388,7 @@
         Swal.fire({
             title: 'เลือกหน่วยงานที่ต้องการแทงเรื่อง',
             html: `
-                <select id="position_id" class="swal2-input" style="width: 80%;">
-                    <option value="" disabled selected>กรุณาเลือก</option>
+                <select id="position_id" name="states[]" multiple="multiple" class="swal2-input" style="width: 80%;">
                     @foreach($position as $key => $rec)
                     <option value="{{$key}}">{{$rec}}</option>
                     @endforeach
