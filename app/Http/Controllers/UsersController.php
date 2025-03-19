@@ -47,8 +47,8 @@ class UsersController extends Controller
     {
         $users = User::select('users.*', 'permissions.permission_name', 'positions.position_name')
             ->whereNot('permission_id', '9')
-            ->leftJoin('permissions', 'Users.permission_id', '=', 'permissions.id')
-            ->leftJoin('positions', 'Users.position_id', '=', 'positions.id')
+            ->leftJoin('permissions', 'users.permission_id', '=', 'permissions.id')
+            ->leftJoin('positions', 'users.position_id', '=', 'positions.id')
             ->orderBy('users.id', 'asc')
             ->get();
         foreach ($users as $key => $value) {
