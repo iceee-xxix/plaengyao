@@ -128,4 +128,12 @@
     });
 </script>
 @endif
+@if(session('error'))
+<script>
+    Swal.fire({
+        title: "ท่านไม่ได้เลือกไฟล์ที่ต้องการนำเข้าระบบ",
+        icon: "error",
+    });
+</script>
+@endif
 @endsection

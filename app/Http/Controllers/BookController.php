@@ -60,69 +60,73 @@ class BookController extends Controller
 
     public function save(Request $request)
     {
-        $book = new Book;
-        $book->selectBookregist = $request['selectBookregist'];
-        $book->inputBookregistNumber = $request['inputBookregistNumber'];
-        $book->inputBooknumberOrgStruc = $request['inputBooknumberOrgStruc'];
-        $book->selectBookcircular = $request['selectBookcircular'];
-        $book->inputBooknumberEnd = $request['inputBooknumberEnd'];
-        $book->selectLevelSpeed = $request['selectLevelSpeed'];
-        $book->inputRecieveDate = $request['inputRecieveDate'];
-        $book->inputPickUpDate = $request['inputPickUpDate'];
-        $book->inputDated = $request['inputDated'];
-        $book->inputSubject = $request['inputSubject'];
-        $book->inputBookto = $request['inputBookto'];
-        $book->inputBookref = $request['inputBookref'];
-        $book->inputContent = $request['inputContent'];
-        $book->inputNote = $request['inputNote'];
-        $book->selectBookFrom = $request['selectBookFrom'];
-        $book->flexCheckChecked = ($request['flexCheckChecked'] == 'on') ? 1 : 0;
-        $book->created_by = $this->users->id;
-        $book->updated_by = $this->users->id;
-        $book->status = 1;
-        if (isset($request['select-email'])) {
-            $cm = new ClientManager();
-            $client = $cm->make([
-                'host'          => 'plaengyao.go.th',
-                'port'          => '993',
-                'encryption'    => 'TLS',
-                'validate_cert' => 'false',
-                'username'      => 'saraban@plaengyao.go.th',
-                'password'      => 'Saraban@867',
-                'protocol'      => 'imap'
-            ]);
+        if ($request->hasFile('file-input')) {
 
-            $client->connect();
+            $book = new Book;
+            $book->selectBookregist = $request['selectBookregist'];
+            $book->inputBookregistNumber = $request['inputBookregistNumber'];
+            $book->inputBooknumberOrgStruc = $request['inputBooknumberOrgStruc'];
+            $book->selectBookcircular = $request['selectBookcircular'];
+            $book->inputBooknumberEnd = $request['inputBooknumberEnd'];
+            $book->selectLevelSpeed = $request['selectLevelSpeed'];
+            $book->inputRecieveDate = $request['inputRecieveDate'];
+            $book->inputPickUpDate = $request['inputPickUpDate'];
+            $book->inputDated = $request['inputDated'];
+            $book->inputSubject = $request['inputSubject'];
+            $book->inputBookto = $request['inputBookto'];
+            $book->inputBookref = $request['inputBookref'];
+            $book->inputContent = $request['inputContent'];
+            $book->inputNote = $request['inputNote'];
+            $book->selectBookFrom = $request['selectBookFrom'];
+            $book->flexCheckChecked = ($request['flexCheckChecked'] == 'on') ? 1 : 0;
+            $book->created_by = $this->users->id;
+            $book->updated_by = $this->users->id;
+            $book->status = 1;
+            if (isset($request['select-email'])) {
+                $cm = new ClientManager();
+                $client = $cm->make([
+                    'host'          => 'plaengyao.go.th',
+                    'port'          => '993',
+                    'encryption'    => 'TLS',
+                    'validate_cert' => 'false',
+                    'username'      => 'saraban@plaengyao.go.th',
+                    'password'      => 'Saraban@867',
+                    'protocol'      => 'imap'
+                ]);
 
-            $folder = $client->getFolder('INBOX');
-            $message = $folder->query()->uid($request['select-email'])->get();
-            if ($message) {
-                $message = $message->first();
-                if ($message->hasAttachments()) {
-                    $attachments = $message->getAttachments();
-                    foreach ($attachments as $attachment) {
-                        $filePath =  'uploads/' . time() . '.' . $attachment->getExtension();
-                        // $attachment->save(storage_path('app/attachments/' . $newFileName));
-                        $attachment->save(storage_path('app/public/uploads/'));
-                        rename(storage_path('app/public/uploads/' . $attachment->name), storage_path('app/public/' . $filePath));
+                $client->connect();
+
+                $folder = $client->getFolder('INBOX');
+                $message = $folder->query()->uid($request['select-email'])->get();
+                if ($message) {
+                    $message = $message->first();
+                    if ($message->hasAttachments()) {
+                        $attachments = $message->getAttachments();
+                        foreach ($attachments as $attachment) {
+                            $filePath =  'uploads/' . time() . '.' . $attachment->getExtension();
+                            // $attachment->save(storage_path('app/attachments/' . $newFileName));
+                            $attachment->save(storage_path('app/public/uploads/'));
+                            rename(storage_path('app/public/uploads/' . $attachment->name), storage_path('app/public/' . $filePath));
+                        }
                     }
                 }
+            } else {
+                if ($request->hasFile('file-input')) {
+                    $file = $request->file('file-input');
+                    $filePath = $file->store('uploads');
+                }
             }
-        } else {
-            if ($request->hasFile('file-input')) {
-                $file = $request->file('file-input');
-                $filePath = $file->store('uploads');
+            if ($request->hasFile('file-attachments')) {
+                $attachments = $request->file('file-attachments');
+                $filePathAttachments = $attachments->store('attachments');
+            }
+            $book->file = ($filePath) ? $filePath : '';
+            $book->fileAttachments = ($filePathAttachments) ? $filePathAttachments : '';
+            if ($book->save()) {
+                return redirect()->route('book.index')->with('success', 'Book added successfully!');
             }
         }
-        if ($request->hasFile('file-attachments')) {
-            $attachments = $request->file('file-attachments');
-            $filePathAttachments = $attachments->store('attachments');
-        }
-        $book->file = ($filePath) ? $filePath : '';
-        $book->fileAttachments = ($filePathAttachments) ? $filePathAttachments : '';
-        if ($book->save()) {
-            return redirect()->route('book.index')->with('success', 'Book added successfully!');
-        }
+        return redirect()->route('book.index')->with('error', 'ท่านไม่ได้เลือกไฟล์ที่ต้องการนำเข้าระบบ');
     }
 
     public function show()
