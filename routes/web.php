@@ -46,6 +46,6 @@ Route::middleware('auth.admin')->group(function () {
     Route::post('/users/save', [UsersController::class, 'save'])->name('users.save');
 });
 
-Route::post('/email/index', [EmailController::class, 'index'])->name('email.index');
+Route::post('/email', [EmailController::class, 'index'])->name('email.index');
 
 require __DIR__ . '/auth.php';
