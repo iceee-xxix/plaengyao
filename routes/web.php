@@ -5,6 +5,7 @@ use App\Http\Controllers\EmailController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UsersController;
+use Egulias\EmailValidator\EmailValidator;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -45,5 +46,6 @@ Route::middleware('auth.admin')->group(function () {
     Route::post('/users/save', [UsersController::class, 'save'])->name('users.save');
 });
 
+Route::post('/email/index', [EmailController::class, 'index'])->name('email.index');
 
 require __DIR__ . '/auth.php';
