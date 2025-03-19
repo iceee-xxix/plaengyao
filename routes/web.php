@@ -4,6 +4,7 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\EmailController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TrackController;
 use App\Http\Controllers\UsersController;
 use Egulias\EmailValidator\EmailValidator;
 use Illuminate\Support\Facades\Route;
@@ -44,6 +45,11 @@ Route::middleware('auth.admin')->group(function () {
     Route::get('/users/listData', [UsersController::class, 'listData'])->name('users.listData');
     Route::get('/users/edit/{id}', [UsersController::class, 'edit'])->name('users.edit');
     Route::post('/users/save', [UsersController::class, 'save'])->name('users.save');
+    Route::get('/tracking', [TrackController::class, 'index'])->name('tracking.index');
+    Route::post('/tracking/dataReportMain', [TrackController::class, 'dataReportMain'])->name('tracking.dataReportMain');
+    Route::get('/tracking/detail/{id}', [TrackController::class, 'detail'])->name('tracking.detail');
+    Route::post('/tracking/dataReportDetail', [TrackController::class, 'dataReportDetail'])->name('tracking.dataReportDetail');
+    Route::post('/tracking/getDetailAll', [TrackController::class, 'getDetailAll'])->name('tracking.getDetailAll');
 });
 
 Route::get('/email', [EmailController::class, 'index'])->name('email.index');

@@ -123,6 +123,13 @@ class BookController extends Controller
             $book->file = ($filePath) ? $filePath : '';
             $book->fileAttachments = ($filePathAttachments) ? $filePathAttachments : '';
             if ($book->save()) {
+                log_active([
+                    'users_id' => auth()->user()->id,
+                    'status' => 1,
+                    'datetime' => date('Y-m-d H:i:s'),
+                    'detail' => 'นำเข้าเอกสาร',
+                    'book_id' => $book->id
+                ]);
                 return redirect()->route('book.index')->with('success', 'Book added successfully!');
             }
         }
@@ -303,6 +310,13 @@ class BookController extends Controller
             $update->updated_by = $this->users->id;
             $update->updated_at = date('Y-m-d H:i:s');
             if ($update->save()) {
+                log_active([
+                    'users_id' => auth()->user()->id,
+                    'status' => 2,
+                    'datetime' => date('Y-m-d H:i:s'),
+                    'detail' => 'ลงบันทึกรับหนังสือ',
+                    'book_id' => $id
+                ]);
                 $this->editPdf($positionX, $positionY, $pages, $book);
                 $data['status'] = true;
                 $data['message'] = 'ลงบันทึกเวลาเรียบร้อยแล้ว';
@@ -387,7 +401,17 @@ class BookController extends Controller
                 $insert->datetime = date('Y-m-d H:i:s');
                 $insert->file = $value . '/' . $book->file;
                 $insert->position_id = $value;
-                $insert->save();
+                if ($insert->save()) {
+                    $sql = Position::where('id', $value)->first();
+                    log_active([
+                        'users_id' => auth()->user()->id,
+                        'status' => 3,
+                        'datetime' => date('Y-m-d H:i:s'),
+                        'detail' => 'แทงเรื่องไป ' . $sql->position_name,
+                        'book_id' => $id,
+                        'position_id' => $value
+                    ]);
+                }
             }
             if ($update->save()) {
                 $data['status'] = true;
@@ -420,6 +444,14 @@ class BookController extends Controller
                     'file' => $book->file
                 ];
                 $this->editPdf_admin($positionX, $positionY, $pages, $update);
+                log_active([
+                    'users_id' => auth()->user()->id,
+                    'status' => 4,
+                    'datetime' => date('Y-m-d H:i:s'),
+                    'detail' => 'ประทับตราลงรับ',
+                    'book_id' => $id,
+                    'position_id' => $update->position_id
+                ]);
                 $data['status'] = true;
                 $data['message'] = 'ลงบันทึกเวลาเรียบร้อยแล้ว';
             }
@@ -522,10 +554,20 @@ class BookController extends Controller
         $book = $query->where('id', $id)->first();
         if (!empty($book)) {
             $update = Log_status_book::where('position_id', $this->position_id)->where('book_id', $id)->first();
+            $getForward = User::find($users_id);
+            $sql = Permission::where('id', $getForward->permission_id)->first();
             $update->status = $status;
             $update->parentUsers = $users_id;
             $update->updated_at = date('Y-m-d H:i:s');
             if ($update->save()) {
+                log_active([
+                    'users_id' => auth()->user()->id,
+                    'status' => $status,
+                    'datetime' => date('Y-m-d H:i:s'),
+                    'detail' => 'แทงเรื่อง (' . $getForward->fullname . '(' . $sql->permission_name . '))',
+                    'book_id' => $id,
+                    'position_id' => $update->position_id
+                ]);
                 $data['status'] = true;
                 $data['message'] = 'แทงเรื่องเรียบร้อยแล้ว';
             }
@@ -569,6 +611,14 @@ class BookController extends Controller
             $update->status = 5;
             $update->updated_at = date('Y-m-d H:i:s');
             if ($update->save()) {
+                log_active([
+                    'users_id' => auth()->user()->id,
+                    'status' => 5,
+                    'datetime' => date('Y-m-d H:i:s'),
+                    'detail' => 'เกษียณหนังสือ',
+                    'book_id' => $input['id'],
+                    'position_id' => $update->position_id
+                ]);
                 $this->editPdf_signature($input['positionX'], $input['positionY'], $input['pages'], $update, $input['text'], $input['checkedValues']);
                 $data['status'] = true;
                 $data['message'] = 'ลงบันทึกเกษียณหนังสือเรียบร้อย';
@@ -647,6 +697,14 @@ class BookController extends Controller
             $update->status = $input['status'];
             $update->updated_at = date('Y-m-d H:i:s');
             if ($update->save()) {
+                log_active([
+                    'users_id' => auth()->user()->id,
+                    'status' => $input['status'],
+                    'datetime' => date('Y-m-d H:i:s'),
+                    'detail' => 'เซ็นเกษียณหนังสือ',
+                    'book_id' => $input['id'],
+                    'position_id' => $update->position_id
+                ]);
                 $this->editPdf_signature($input['positionX'], $input['positionY'], $input['pages'], $update, $input['text'], $input['checkedValues']);
                 $data['status'] = true;
                 $data['message'] = 'ลงบันทึกลายเซ็นเรียบร้อยแล้ว';

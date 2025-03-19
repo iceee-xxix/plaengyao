@@ -2,6 +2,7 @@
 
 use App\Models\Book;
 use App\Models\BookModel;
+use App\Models\Log_active_book;
 use App\Models\Log_status_book;
 
 function status_helper($data)
@@ -25,6 +26,17 @@ function DateThai($strDate)
     $strMonthCut = array("", "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม");
     $strMonthThai = $strMonthCut[$strMonth];
     return "$strDay $strMonthThai $strYear";
+}
+
+function DateTimeThai($strDate)
+{
+    $strYear = date("Y", strtotime($strDate)) + 543;
+    $strMonth = date("n", strtotime($strDate));
+    $strDay = date("j", strtotime($strDate));
+    $time = date("H:i", strtotime($strDate));
+    $strMonthCut = array("", "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม");
+    $strMonthThai = $strMonthCut[$strMonth];
+    return "$strDay $strMonthThai $strYear" . " " . $time;
 }
 
 function numberToThaiDigits($num)
@@ -92,7 +104,7 @@ function convertYearsToThai($date)
     if (!$years) {
         return "วันที่ไม่ถูกต้อง";
     }
-    $year = $years+543;
+    $year = $years + 543;
 
     $yearThai = numberToThaiDigits($year);
     return $yearThai;
@@ -142,8 +154,9 @@ function convertTimeToThai($time)
     return $hoursThai . ":" . $minutesThai;
 }
 
-function adminNumber(){
-    $books = Log_status_book::where('position_id',auth()->user()->position_id)->orderBy('adminBooknumber', 'desc')->first();
+function adminNumber()
+{
+    $books = Log_status_book::where('position_id', auth()->user()->position_id)->orderBy('adminBooknumber', 'desc')->first();
     if ($books) {
         $adminBooknumber = $books->adminBookNumber + 1;
     } else {
@@ -151,4 +164,25 @@ function adminNumber(){
     }
 
     return $adminBooknumber;
+}
+
+function log_active($data)
+{
+    $logs = new Log_active_book();
+    $logs->users_id = $data['users_id'];
+    $logs->status = $data['status'];
+    $logs->datetime = $data['datetime'];
+    $logs->detail = $data['detail'];
+    $logs->book_id = $data['book_id'];
+    if (isset($data['position_id'])) {
+        $logs->position_id = $data['position_id'];
+    }
+    $logs->created_at = date('Y-m-d H:i:s');
+    $logs->updated_at = date('Y-m-d H:i:s');
+    if ($logs->save()) {
+        $message = 'บันทึกสำเร็จ';
+    } else {
+        $message = 'บันทึกไม่สำเร็จ';
+    }
+    return $message;
 }

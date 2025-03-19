@@ -10,6 +10,7 @@
                 @if(auth()->user()->permission_id == 9)
                 <a href="{{url('users/listUsers')}}" type="button" class="btn btn-outline-primary {{($function_key == 'listUsers') ? 'active' : ''}}" style="margin-right:10px">ข้อมูลสมาชิก</a>
                 @endif
+                <a href="{{url('tracking')}}" type="button" class="btn btn-outline-primary {{($function_key == 'tracking') ? 'active' : ''}}" style="margin-right:10px">ติดตามสถานะ</a>
             </ul>
         </div>
         <div class="ms-auto">
