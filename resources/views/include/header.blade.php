@@ -24,7 +24,7 @@
                             <div class="d-flex mb-1">
                                 <div class="flex-shrink-0">
                                     <a href="{{url('/users/edit/'.auth()->user()->id)}}">
-                                        <img src="http://localhost/project/dist/assets/images/user/avatar-2.jpg" alt="user-image" class="user-avtar wid-35">
+                                        <img src="{{asset('dist/assets/images/user/avatar-2.jpg')}}" alt="user-image" class="user-avtar wid-35">
                                     </a>
                                 </div>
                                 <div class="flex-grow-1 ms-3">
