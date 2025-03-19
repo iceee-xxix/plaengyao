@@ -31,7 +31,7 @@
                         <div class="mb-3 row">
                             <label for="email" class="col-sm-2 col-form-label">อีเมล :</label>
                             <div class="col-sm-10">
-                                <input class="form-control" type="email" name="email" id="email" autocomplete="off" value="{{$data->email}}">
+                                <input class="form-control" type="email" name="email" id="email" autocomplete="off" value="{{$data->username}}">
                             </div>
                         </div>
                         <div class="mb-3 row">

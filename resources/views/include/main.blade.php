@@ -14,11 +14,11 @@
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap"
         id="main-font-link">
-    <link rel="stylesheet" href="http://localhost/project/dist/assets/fonts/feather.css">
-    <link rel="stylesheet" href="http://localhost/project/dist/assets/fonts/fontawesome.css">
-    <link rel="stylesheet" href="http://localhost/project/dist/assets/fonts/material.css">
-    <link rel="stylesheet" href="http://localhost/project/dist/assets/css/style.css" id="main-style-link">
-    <link rel="stylesheet" href="http://localhost/project/dist/assets/css/style-preset.css">
+    <link rel="stylesheet" href="{{asset('dist/assets/fonts/feather.css')}}">
+    <link rel="stylesheet" href="{{asset('dist/assets/fonts/fontawesome.css')}}">
+    <link rel="stylesheet" href="{{asset('dist/assets/fonts/material.css')}}">
+    <link rel="stylesheet" href="{{asset('dist/assets/css/style.css')}}" id="main-style-link">
+    <link rel="stylesheet" href="{{asset('dist/assets/css/style-preset.css')}}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link href='https://fonts.googleapis.com/css?family=Noto Sans Thai' rel='stylesheet'>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>

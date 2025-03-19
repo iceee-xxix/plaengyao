@@ -79,7 +79,7 @@ class UsersController extends Controller
         if ($users) {
             $users->fullname = $input['fullname'];
             if (isset($input['email'])) {
-                $users->email = $input['email'];
+                $users->username = $input['email'];
             }
             if (!empty($password)) {
                 $users->password_email = $input['password'];
