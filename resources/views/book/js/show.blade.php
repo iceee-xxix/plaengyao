@@ -212,7 +212,7 @@
         $('#positionX').val('');
         $('#positionY').val('');
         document.getElementById('add-stamp').disabled = true;
-        if (permission_id != '1') {
+        // if (permission_id != '1') {
             if (status == 1) {
                 $('#add-stamp').show();
                 $('#save-stamp').show();
@@ -220,7 +220,7 @@
             if (status == 2) {
                 $('#send-to').show();
             }
-        }
+        // }
         resetMarking();
         removeMarkListener();
     }
