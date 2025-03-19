@@ -4,6 +4,17 @@
     body {
         font-family: 'Noto Sans Thai';
     }
+
+    .card-header {
+        padding: .5rem 1rem;
+        margin-bottom: 0;
+        background-color: rgba(0, 0, 0, .03);
+        border-bottom: 1px solid rgba(0, 0, 0, .125);
+    }
+
+    .card-body {
+        padding: 1%
+    }
 </style>
 @endsection
 

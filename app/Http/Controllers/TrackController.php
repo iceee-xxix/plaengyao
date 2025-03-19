@@ -62,13 +62,19 @@ class TrackController extends Controller
                     ->leftJoin('book_types', 'book_types.id', '=', 'books.inputBookregistNumber')
                     ->leftJoin('book_number_types', 'book_number_types.id', '=', 'books.selectBookcircular')
                     ->find($rec->book_id);
+                if ($rec->total <= 2) {
+                    $action = '<a href="' . url('/storage/' . $book->file) . '" target="_blank"><button class="btn btn-sm btn-outline-dark" title="เปิดไฟล์"><i class="fa fa-file-pdf-o"></i></button></a>
+                    <button title="ดูรายละเอียด" class="btn btn-sm btn-outline-dark modalDetail" data-id="' . Crypt::encrypt($book->id) . '"><i class="fa fa-search"></i></button>';
+                } else {
+                    $action = '<a href="' . url('/tracking/detail/' . Crypt::encrypt($book->id)) . '"><button class="btn btn-sm btn-outline-dark" title="ดูรายละเอียด"><i class="fa fa-search"></i></button></a>';
+                }
                 $info[] = [
                     'number_regis' => $book->inputBookregistNumber,
                     'type_regis' => $book->type_name,
                     'number_book' => $book->inputBooknumberOrgStruc . '/' . $book->number_type . $book->inputBooknumberEnd,
                     'title' => $book->inputSubject,
                     'date' => DateThai($book->inputRecieveDate),
-                    'action' => '<a href="' . url('/tracking/detail/' . Crypt::encrypt($book->id)) . '"><button class="btn btn-sm btn-outline-dark" title="ดูรายละเอียด"><i class="fa fa-search"></i></button></a>'
+                    'action' => $action
                 ];
             }
             $data = [
@@ -158,8 +164,10 @@ class TrackController extends Controller
             ->leftJoin('users', 'users.id', '=', 'log_active_books.users_id')
             ->where('book_id', $id)
             ->where(function ($query) use ($position_id) {
-                $query->where('log_active_books.position_id')
-                    ->orWhere('log_active_books.position_id', $position_id);
+                if ($position_id) {
+                    $query->where('log_active_books.position_id')
+                        ->orWhere('log_active_books.position_id', $position_id);
+                }
             })
             ->orderBy('log_active_books.status', 'asc')->get();
         if (count($logs)) {
