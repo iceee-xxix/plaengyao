@@ -4,6 +4,7 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\EmailController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UsersController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -38,8 +39,11 @@ Route::middleware('auth.admin')->group(function () {
     Route::post('/book/signature_stamp', [BookController::class, 'signature_stamp'])->name('book.signature_stamp');
     Route::post('/book/manager_stamp', [BookController::class, 'manager_stamp'])->name('book.manager_stamp');
     Route::get('/book/getEmail', [BookController::class, 'getEmail'])->name('book.getEmail');
+    Route::get('/users/listUsers', [UsersController::class, 'listUsers'])->name('users.listUsers');
+    Route::get('/users/listData', [UsersController::class, 'listData'])->name('users.listData');
+    Route::get('/users/edit/{id}', [UsersController::class, 'edit'])->name('users.edit');
+    Route::post('/users/save', [UsersController::class, 'save'])->name('users.save');
 });
 
-Route::get('/email', [EmailController::class, 'index'])->name('email.index');
 
 require __DIR__ . '/auth.php';
