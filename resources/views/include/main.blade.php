@@ -37,12 +37,12 @@
 </body>
 
 </html>
-<script src="http://localhost/project/dist/assets/js/plugins/popper.min.js"></script>
-<script src="http://localhost/project/dist/assets/js/plugins/simplebar.min.js"></script>
-<script src="http://localhost/project/dist/assets/js/plugins/bootstrap.min.js"></script>
-<script src="http://localhost/project/dist/assets/js/fonts/custom-font.js"></script>
-<script src="http://localhost/project/dist/assets/js/pcoded.js"></script>
-<script src="http://localhost/project/dist/assets/js/plugins/feather.min.js"></script>
+<script src="{{asset('dist/assets/js/plugins/popper.min.js')}}"></script>
+<script src="{{asset('dist/assets/js/plugins/simplebar.min.js')}}"></script>
+<script src="{{asset('dist/assets/js/plugins/bootstrap.min.js')}}"></script>
+<script src="{{asset('dist/assets/js/fonts/custom-font.js')}}"></script>
+<script src="{{asset('dist/assets/js/pcoded.js')}}"></script>
+<script src="{{asset('dist/assets/js/plugins/feather.min.js')}}"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
 
