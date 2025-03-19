@@ -72,53 +72,53 @@
     });
 </script>
 <script>
-    $('#selectImport').change(function(e) {
-        e.preventDefault();
-        var select = $(this).val();
-        $('input[name="select-email"]').prop('checked', false);
-        if (select == 1) {
-            $('#uploadDiv').show();
-            $('#dataTableDiv').hide();
-        } else {
-            $('#uploadDiv').hide();
-            $('#dataTableDiv').show();
-        }
-    });
-    $(document).ready(function() {
-        $('#tableEmail').DataTable({
-            ajax: {
-                url: '/book/getEmail',
-                contentType: 'application/json',
-                type: 'get',
-            },
-            order: [
-                [3, 'desc']
-            ],
-            columns: [{
-                    data: null,
-                    render: function(data, type, row) {
-                        return '<input type="radio" class="row-radio" name="select-email" value="' + row.uid + '">';
-                    },
-                    class: 'text-center',
-                }, {
-                    data: 'title',
-                },
-                {
-                    data: 'sender',
-                    class: 'text-center',
-                },
-                {
-                    data: 'date',
-                    class: 'text-center',
-                },
-                {
-                    data: 'url',
-                    class: 'text-center',
-                    orderable: false,
-                }
-            ]
-        });
-    });
+    // $('#selectImport').change(function(e) {
+    //     e.preventDefault();
+    //     var select = $(this).val();
+    //     $('input[name="select-email"]').prop('checked', false);
+    //     if (select == 1) {
+    //         $('#uploadDiv').show();
+    //         $('#dataTableDiv').hide();
+    //     } else {
+    //         $('#uploadDiv').hide();
+    //         $('#dataTableDiv').show();
+    //     }
+    // });
+    // $(document).ready(function() {
+    //     $('#tableEmail').DataTable({
+    //         ajax: {
+    //             url: '/book/getEmail',
+    //             contentType: 'application/json',
+    //             type: 'get',
+    //         },
+    //         order: [
+    //             [3, 'desc']
+    //         ],
+    //         columns: [{
+    //                 data: null,
+    //                 render: function(data, type, row) {
+    //                     return '<input type="radio" class="row-radio" name="select-email" value="' + row.uid + '">';
+    //                 },
+    //                 class: 'text-center',
+    //             }, {
+    //                 data: 'title',
+    //             },
+    //             {
+    //                 data: 'sender',
+    //                 class: 'text-center',
+    //             },
+    //             {
+    //                 data: 'date',
+    //                 class: 'text-center',
+    //             },
+    //             {
+    //                 data: 'url',
+    //                 class: 'text-center',
+    //                 orderable: false,
+    //             }
+    //         ]
+    //     });
+    // });
 </script>
 @if(session('success'))
 <script>
