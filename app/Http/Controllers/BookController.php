@@ -83,12 +83,12 @@ class BookController extends Controller
         if (isset($request['select-email'])) {
             $cm = new ClientManager();
             $client = $cm->make([
-                'host'          => env('IMAP_HOST'),
-                'port'          => env('IMAP_PORT'),
-                'encryption'    => env('IMAP_ENCRYPTION'),
-                'validate_cert' => env('IMAP_VALIDATE_CERT'),
-                'username'      => env('IMAP_USERNAME'),
-                'password'      => env('IMAP_PASSWORD'),
+                'host'          => 'plaengyao.go.th',
+                'port'          => '993',
+                'encryption'    => 'TLS',
+                'validate_cert' => 'false',
+                'username'      => 'saraban@plaengyao.go.th',
+                'password'      => 'Saraban@867',
                 'protocol'      => 'imap'
             ]);
 
