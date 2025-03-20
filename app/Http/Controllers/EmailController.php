@@ -16,14 +16,13 @@ class EmailController extends Controller
             'host'          => 'plaengyao.go.th',
             'port'          => '993',
             'encryption'    => 'TLS',
-            'validate_cert' => 'false',
+            'validate_cert' => false,
             'username'      => 'saraban@plaengyao.go.th',
             'password'      => 'Saraban@867',
             'protocol'      => 'imap'
         ]);
 
         $client->connect();
-        dd($client);
 
         $folder = $client->getFolder('INBOX');
         $messages = $folder->query()->all()->get();

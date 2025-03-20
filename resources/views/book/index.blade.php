@@ -200,7 +200,7 @@
                                 <input type="date" class="form-control" id="inputDateReport" name="inputDateReport" disabled>
                             </div>
                         </div>
-                        <!-- <div class="mb-2 row">
+                        <div class="mb-2 row">
                             <label for="selectImport" class="col-sm-2 col-form-label d-flex justify-content-end">วิธีการนำเข้า : </label>
                             <div class="col-sm-10">
                                 <select class="form-control" name="selectImport" id="selectImport">
@@ -208,7 +208,7 @@
                                     <option value="2">นำเข้าผ่านระบบอีเมล</option>
                                 </select>
                             </div>
-                        </div> -->
+                        </div>
                         <div class="mb-2 row">
                             <label for="flexCheckChecked" class="col-sm-2 col-form-label d-flex justify-content-end">ไฟล์แนบอื่นๆ : </label>
                             <div class="col-sm-10">
