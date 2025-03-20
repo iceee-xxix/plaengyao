@@ -73,8 +73,7 @@ class BookController extends Controller
 
     public function save(Request $request)
     {
-        if ($request->hasFile('file-input')) {
-
+        if ($request->hasFile('file-input') || isset($request['select-email'])) {
             $book = new Book;
             $book->selectBookregist = $request['selectBookregist'];
             $book->inputBookregistNumber = $request['inputBookregistNumber'];
