@@ -72,6 +72,25 @@
     });
 </script>
 <script>
+    $('#selectBookregist').change(function(e) {
+        e.preventDefault();
+        var id = $(this).val();
+        $.ajax({
+            type: "post",
+            url: "/book/bookType",
+            data: {
+                id: id
+            },
+            dataType: "json",
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                $('#inputBookregistLabel').text(response);
+                $('#inputBookregistNumber').val(response);
+            }
+        });
+    });
     // $('#selectImport').change(function(e) {
     //     e.preventDefault();
     //     var select = $(this).val();

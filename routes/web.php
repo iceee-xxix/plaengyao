@@ -28,6 +28,7 @@ Route::get('/login/logout', [LoginController::class, 'logout'])->name('login.log
 
 Route::middleware('auth.admin')->group(function () {
     Route::get('/book', [BookController::class, 'index'])->name('book.index');
+    Route::post('/book/bookType', [BookController::class, 'bookType'])->name('book.bookType');
     Route::post('/book/save', [BookController::class, 'save'])->name('book.save');
     Route::get('/book/show', [BookController::class, 'show'])->name('book.show');
     Route::post('/book/dataListSearch', [BookController::class, 'dataListSearch'])->name('book.dataListSearch');

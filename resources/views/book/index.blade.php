@@ -99,7 +99,7 @@
                             </div>
                             <div class="col-6" style="text-align:left;">
                                 <label for="inputBookregistNumber" class="col-auto col-form-label">เลขที่รับ : </label>
-                                <label for="inputBookregistNumber" class="col-auto col-form-label" style="text-align:left;">{{ $inputBookregistNumber }}</label>
+                                <label for="inputBookregistNumber" class="col-auto col-form-label" style="text-align:left;" id="inputBookregistLabel">{{ $inputBookregistNumber }}</label>
                                 <input type="hidden" name="inputBookregistNumber" id="inputBookregistNumber" value="{{ $inputBookregistNumber }}" autocomplete="off">
                             </div>
                         </div>

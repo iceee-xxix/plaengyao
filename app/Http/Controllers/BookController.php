@@ -42,6 +42,7 @@ class BookController extends Controller
             return $next($request);
         });
     }
+
     public function index()
     {
         if ($this->permission_id != 1 && $this->permission_id != 9) {
@@ -56,6 +57,18 @@ class BookController extends Controller
             $data['inputBookregistNumber'] = 1;
         }
         return view('book.index', $data);
+    }
+
+    public function bookType(Request $request)
+    {
+        $id = $request->input('id');
+        $books = Book::where('selectBookregist', $id)->orderBy('inputBookregistNumber', 'desc')->first();
+        if ($books) {
+            $inputBookregistNumber = $books->inputBookregistNumber + 1;
+        } else {
+            $inputBookregistNumber = 1;
+        }
+        return response()->json($inputBookregistNumber);
     }
 
     public function save(Request $request)
