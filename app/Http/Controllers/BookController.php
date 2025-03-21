@@ -803,6 +803,7 @@ class BookController extends Controller
         if (!empty($book)) {
             $update = Book::find($id);
             $update->is_number_stamp = 1;
+            $update->status = 2;
             $update->updated_by = $this->users->id;
             $update->updated_at = date('Y-m-d H:i:s');
             if ($update->save()) {
