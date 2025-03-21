@@ -173,14 +173,15 @@ class BookController extends Controller
         Session::forget('keyword');
         $book = new Book;
         if ($this->permission_id == '1' || $this->permission_id == '2') {
-            $book = $book->select('books.*', 'users.fullname')->whereIn('status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->join('users', 'books.selectBookFrom', '=', 'users.id')->limit(5)->get();
+            $book = $book->select('books.*', 'users.fullname')->whereIn('status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->leftJoin('users', 'books.selectBookFrom', '=', 'users.id')->limit(5)->get();
         } else {
             $book = $book->where('log_status_books.position_id', $this->position_id);
-            $book = $book->select('books.*', 'users.fullname', 'log_status_books.status', 'log_status_books.file')->whereIn('log_status_books.status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->join('users', 'books.selectBookFrom', '=', 'users.id')->join('log_status_books', 'books.id', '=', 'log_status_books.book_id')->limit(5)->get();
+            $book = $book->select('books.*', 'users.fullname', 'log_status_books.status', 'log_status_books.file')->whereIn('log_status_books.status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->leftJoin('users', 'books.selectBookFrom', '=', 'users.id')->join('log_status_books', 'books.id', '=', 'log_status_books.book_id')->limit(5)->get();
         }
         foreach ($book as &$rec) {
             $rec->showTime = date('H:i', strtotime($rec->inputRecieveDate));
             $rec->url = url("storage/" . $rec->file);
+            $rec->inputBookregistNumber = numberToThaiDigits($rec->inputBookregistNumber);
         }
         $book_count = Book::join('users', 'books.selectBookFrom', '=', 'users.id')->count();
         $data['totalPages'] = (int)ceil($book_count / 5);
@@ -208,24 +209,25 @@ class BookController extends Controller
                 ->orWhereRaw('inputContent like "%' . $search . '%"')
                 ->orWhereRaw('inputNote like "%' . $search . '%"');
             if ($this->permission_id == '1' || $this->permission_id == '2') {
-                $book = $query->select('books.*', 'users.fullname')->whereIn('status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->join('users', 'books.selectBookFrom', '=', 'users.id')->limit(5)->offset($pages)->get();
+                $book = $query->select('books.*', 'users.fullname')->whereIn('status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->leftJoin('users', 'books.selectBookFrom', '=', 'users.id')->limit(5)->offset($pages)->get();
             } else {
                 $query = $query->where('log_status_books.position_id', $this->position_id);
-                $book = $query->select('books.*', 'users.fullname', 'log_status_books.status', 'log_status_books.file')->whereIn('log_status_books.status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->join('users', 'books.selectBookFrom', '=', 'users.id')->join('log_status_books', 'books.id', '=', 'log_status_books.book_id')->limit(5)->offset($pages)->get();
+                $book = $query->select('books.*', 'users.fullname', 'log_status_books.status', 'log_status_books.file')->whereIn('log_status_books.status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->leftJoin('users', 'books.selectBookFrom', '=', 'users.id')->leftJoin('log_status_books', 'books.id', '=', 'log_status_books.book_id')->limit(5)->offset($pages)->get();
             }
         } else {
             $query = new Book;
             if ($this->permission_id == '1' || $this->permission_id == '2') {
-                $book = $query->select('books.*', 'users.fullname')->whereIn('status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->join('users', 'books.selectBookFrom', '=', 'users.id')->limit(5)->offset($pages)->get();
+                $book = $query->select('books.*', 'users.fullname')->whereIn('status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->leftJoin('users', 'books.selectBookFrom', '=', 'users.id')->limit(5)->offset($pages)->get();
             } else {
                 $query = $query->where('log_status_books.position_id', $this->position_id);
-                $book = $query->select('books.*', 'users.fullname', 'log_status_books.status', 'log_status_books.file')->whereIn('log_status_books.status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->join('users', 'books.selectBookFrom', '=', 'users.id')->join('log_status_books', 'books.id', '=', 'log_status_books.book_id')->limit(5)->offset($pages)->get();
+                $book = $query->select('books.*', 'users.fullname', 'log_status_books.status', 'log_status_books.file')->whereIn('log_status_books.status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->leftJoin('users', 'books.selectBookFrom', '=', 'users.id')->leftJoin('log_status_books', 'books.id', '=', 'log_status_books.book_id')->limit(5)->offset($pages)->get();
             }
         }
         if (!empty($book)) {
             foreach ($book as &$rec) {
                 $rec->showTime = date('H:i', strtotime($rec->inputRecieveDate));
                 $rec->url = url("storage/" . $rec->file);
+                $rec->inputBookregistNumber = numberToThaiDigits($rec->inputBookregistNumber);
             }
             $data['book'] = $book;
             $data['status'] = true;
@@ -267,9 +269,9 @@ class BookController extends Controller
             }
         }
         if ($this->permission_id == '1' || $this->permission_id == '2') {
-            $book = $query->select('books.*', 'users.fullname')->whereIn('status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->join('users', 'books.selectBookFrom', '=', 'users.id')->limit(5)->offset($pages)->get();
+            $book = $query->select('books.*', 'users.fullname')->whereIn('status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->leftJoin('users', 'books.selectBookFrom', '=', 'users.id')->limit(5)->offset($pages)->get();
         } else {
-            $book = $query->select('books.*', 'users.fullname', 'log_status_books.status', 'log_status_books.file')->whereIn('log_status_books.status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->join('users', 'books.selectBookFrom', '=', 'users.id')->join('log_status_books', 'books.id', '=', 'log_status_books.book_id')->limit(5)->offset($pages)->get();
+            $book = $query->select('books.*', 'users.fullname', 'log_status_books.status', 'log_status_books.file')->whereIn('log_status_books.status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->leftJoin('users', 'books.selectBookFrom', '=', 'users.id')->leftJoin('log_status_books', 'books.id', '=', 'log_status_books.book_id')->limit(5)->offset($pages)->get();
         }
         if (!empty($search)) {
             $query = Book::whereRaw('inputSubject like "%' . $search . '%"')
@@ -289,14 +291,15 @@ class BookController extends Controller
             }
         }
         if ($this->permission_id == '1' || $this->permission_id == '2') {
-            $book_count = $query->whereIn('status', $this->permission)->join('users', 'books.selectBookFrom', '=', 'users.id')->count();
+            $book_count = $query->whereIn('status', $this->permission)->leftJoin('users', 'books.selectBookFrom', '=', 'users.id')->count();
         } else {
-            $book_count = $query->whereIn('log_status_books.status', $this->permission)->join('users', 'books.selectBookFrom', '=', 'users.id')->join('log_status_books', 'books.id', '=', 'log_status_books.book_id')->count();
+            $book_count = $query->whereIn('log_status_books.status', $this->permission)->leftJoin('users', 'books.selectBookFrom', '=', 'users.id')->leftJoin('log_status_books', 'books.id', '=', 'log_status_books.book_id')->count();
         }
         if (!empty($book)) {
             foreach ($book as &$rec) {
                 $rec->showTime = date('H:i', strtotime($rec->inputRecieveDate));
                 $rec->url = url("storage/" . $rec->file);
+                $rec->inputBookregistNumber = numberToThaiDigits($rec->inputBookregistNumber);
             }
             $data['totalPages'] = (int)ceil($book_count / 5);
             $data['book'] = $book;
@@ -769,5 +772,87 @@ class BookController extends Controller
             $data['status'] = true;
         }
         return response()->json($data);
+    }
+
+    function uploadPdf(Request $request)
+    {
+        $data['status'] = false;
+        $data['message'] = '';
+        $input = $request->input();
+        $book = book::find($input['id']);
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $filePath = $file->store('uploads');
+            $book->file = ($filePath) ? $filePath : '';
+            if ($book->save()) {
+                $data['status'] = true;
+                $data['message'] = 'บันทึกข้อมูลสำเร็จ';
+            }
+        }
+        return response()->json($data);
+    }
+
+    public function number_save(Request $request)
+    {
+        $id = $request->input('id');
+        $positionX = $request->input('positionX');
+        $positionY = $request->input('positionY');
+        $pages = $request->input('pages');
+        $query = new Book;
+        $book = $query->where('id', $id)->first();
+        if (!empty($book)) {
+            $update = Book::find($id);
+            $update->is_number_stamp = 1;
+            $update->updated_by = $this->users->id;
+            $update->updated_at = date('Y-m-d H:i:s');
+            if ($update->save()) {
+                log_active([
+                    'users_id' => auth()->user()->id,
+                    'status' => 1,
+                    'datetime' => date('Y-m-d H:i:s'),
+                    'detail' => 'ลงประทับเลขที่จอง',
+                    'book_id' => $id
+                ]);
+                $this->editNumberPDF($positionX, $positionY, $pages, $book);
+                $data['status'] = true;
+                $data['message'] = 'ลงบันทึกเวลาเรียบร้อยแล้ว';
+            }
+        }
+        return response()->json($data);
+    }
+
+    public function editNumberPDF($x, $y, $pages, $data)
+    {
+        $pdf = new Fpdi();
+        $filePath = public_path('/storage/' . $data->file);
+
+        if (!file_exists($filePath)) {
+            return 'File not found!';
+        }
+
+        $pdf = new Fpdi();
+
+        $pageCount = $pdf->setSourceFile($filePath);
+
+        for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
+            $templateId = $pdf->importPage($pageNo);
+            $pdf->AddPage();
+            $pdf->useTemplate($templateId);
+
+            if ($pageNo == $pages) {
+
+                $fontPath = resource_path('fonts/sarabunextralight.php');
+                $pdf->AddFont('sarabunextralight', '', $fontPath);
+                $pdf->setTextColor(0, 0, 255);
+
+                $x = ($x / 1.5) * 0.3528;
+                $y = ($y / 1.5) * 0.3528;
+                $pdf->SetFont('sarabunextralight', '', 14);
+                $pdf->Text($x, $y - 5, numberToThaiDigits($data->inputBookregistNumber));
+            }
+        }
+
+        $outputPath = public_path('/storage/' . $data->file);
+        $pdf->Output($outputPath, 'F');
     }
 }

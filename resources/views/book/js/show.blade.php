@@ -8,7 +8,10 @@
     var selectPageTable = document.getElementById('page-select-card');
     var pageTotal = '{{$totalPages}}';
     var pageNumTalbe = 1;
-
+    var fileInput = document.getElementById('file-input');
+    var uploadArea = document.getElementById('upload-area');
+    var pdfContainer = document.getElementById('pdf-container');
+    var browseBtn = document.getElementById('browse-btn');
 
     function pdf(url) {
         var pdfDoc = null,
@@ -142,6 +145,37 @@
             var markCanvas = document.getElementById('mark-layer');
             markCanvas.addEventListener('click', markEventListener);
         });
+        $('#number-stamp').click(function(e) {
+            e.preventDefault();
+            removeMarkListener();
+            document.getElementById('number-save').disabled = false;
+
+            markEventListener = function(e) {
+                var markCanvas = document.getElementById('mark-layer');
+                var markCtx = markCanvas.getContext('2d');
+                var rect = markCanvas.getBoundingClientRect();
+                var startX = (e.clientX - rect.left);
+                var startY = (e.clientY - rect.top);
+
+                var endX = startX + 30;
+                var endY = startY;
+
+                markCoordinates = {
+                    startX,
+                    startY,
+                    endX,
+                    endY
+                };
+                drawMarkHidden(startX, startY, endX, endY);
+                $('#positionX').val(startX);
+                $('#positionY').val(startY);
+
+                drawTextHeader('20px Sarabun', startX, startY, $('#number_id').val());
+            };
+
+            var markCanvas = document.getElementById('mark-layer');
+            markCanvas.addEventListener('click', markEventListener);
+        });
 
         function removeMarkListener() {
             var markCanvas = document.getElementById('mark-layer');
@@ -190,6 +224,37 @@
             });
         }
 
+        function drawMarkHidden(startX, startY, endX, endY) {
+            var markCanvas = document.getElementById('mark-layer');
+            var markCtx = markCanvas.getContext('2d');
+            markCtx.clearRect(0, 0, markCanvas.width, markCanvas.height);
+
+            var crossSize = 7;
+            markCtx.beginPath();
+            markCtx.moveTo(endX - crossSize, startY + crossSize);
+            markCtx.lineTo(endX, startY);
+            markCtx.moveTo(endX, startY + crossSize);
+            markCtx.lineTo(endX - crossSize, startY);
+            markCtx.lineWidth = 2;
+            markCtx.strokeStyle = 'red';
+            markCtx.stroke();
+
+            markCanvas.addEventListener('click', function(event) {
+                var rect = markCanvas.getBoundingClientRect();
+                var clickX = event.clientX - rect.left;
+                var clickY = event.clientY - rect.top;
+
+                if (
+                    clickX >= endX - crossSize && clickX <= endX &&
+                    clickY >= startY && clickY <= startY + crossSize
+                ) {
+                    removeMarkListener();
+                    var markCtx = markCanvas.getContext('2d');
+                    markCtx.clearRect(0, 0, markCanvas.width, markCanvas.height); // เคลียร์แคนวาส
+                }
+            });
+        }
+
         function drawTextHeader(type, startX, startY, text) {
             var markCanvas = document.getElementById('mark-layer');
             var markCtx = markCanvas.getContext('2d');
@@ -202,17 +267,23 @@
 
     let markEventListener = null;
 
-    function openPdf(url, id, status) {
+    function openPdf(url, id, status, type, is_check = '', number_id) {
+        console.log(is_check);
         $('.btn-default').hide();
+        $('#div-showPdf').show();
+        $('#div-uploadPdf').hide();
         document.getElementById('add-stamp').disabled = false;
         document.getElementById('save-stamp').disabled = true;
+        document.getElementById('number-save').disabled = true;
         $('#div-canvas').html('<div style="position: relative;"><canvas id="pdf-render"></canvas><canvas id="mark-layer" style="position: absolute; left: 0; top: 0;"></canvas></div>');
         pdf(url);
         $('#id').val(id);
+        $('#number_id').val(number_id);
         $('#positionX').val('');
         $('#positionY').val('');
         document.getElementById('add-stamp').disabled = true;
         // if (permission_id != '1') {
+        if (type == 1) {
             if (status == 1) {
                 $('#add-stamp').show();
                 $('#save-stamp').show();
@@ -220,9 +291,45 @@
             if (status == 2) {
                 $('#send-to').show();
             }
+        }
+        if (type == 2) {
+            if (is_check == '' || is_check == 'null') {
+                $('#number-stamp').show();
+                $('#number-save').show();
+                $('#add-stamp').hide();
+                $('#save-stamp').hide();
+
+            } else {
+                if (status == 1) {
+                    $('#add-stamp').show();
+                    $('#save-stamp').show();
+                }
+                if (status == 2) {
+                    $('#send-to').show();
+                }
+            }
+        }
         // }
         resetMarking();
         removeMarkListener();
+    }
+
+    function uploadPdf(id) {
+        uploadArea.style.opacity = '';
+        uploadArea.style.position = '';
+        document.getElementById('save-pdf').disabled = true;
+
+        $('#pdf-container').html('');
+        $('#div-canvas').html('');
+
+        $('#pdf-container').hide('');
+        $('.btn-default').hide();
+        $('#div-showPdf').hide();
+
+        $('#div-uploadPdf').show();
+        $('#save-pdf').show();
+        $('#upload-area').show();
+        $('#id').val(id);
     }
 
     function resetMarking() {
@@ -291,9 +398,14 @@
                     $('#box-card-item').empty();
                     $('#div-canvas').html('<div style="position: relative;"><canvas id="pdf-render"></canvas><canvas id="mark-layer" style="position: absolute; left: 0; top: 0;"></canvas></div>');
                     response.book.forEach(element => {
-                        $html = '<a href="javascript:void(0)" onclick="openPdf(' + "'" + element.url + "'" + ',' + "'" + element.id + "'" + ',' + "'" + element.status + "'" + ')"><div class="card border-dark mb-2"><div class="card-header text-dark fw-bold">' + element.inputSubject + '</div><div class="card-body text-dark"><div class="row"><div class="col-9">' + element.fullname + '</div><div class="col-3 fw-bold">' + element.showTime + ' น.</div></div></div></div></a>';
+                        var color = 'info';
+                        if (element.type != 1) {
+                            color = 'warning';
+                        }
+                        $html = '<a href="javascript:void(0)" onclick="openPdf(' + "'" + element.url + "'" + ',' + "'" + element.id + "'" + ',' + "'" + element.status + "'" + ',' + "'" + element.type + "'" + ',' + "'" + element.is_number_stamp + "'" + ',' + "'" + element.inputBookregistNumber + "'" + ')"><div class="card border-' + color + ' mb-2"><div class="card-header text-dark fw-bold">' + element.inputSubject + '</div><div class="card-body text-dark"><div class="row"><div class="col-9">' + element.fullname + '</div><div class="col-3 fw-bold">' + element.showTime + ' น.</div></div></div></div></a>';
                         $('#box-card-item').append($html);
                     });
+
                 }
             }
         });
@@ -325,7 +437,11 @@
                     pageNumTalbe = 1;
                     pageTotal = response.totalPages;
                     response.book.forEach(element => {
-                        $html = '<a href="javascript:void(0)" onclick="openPdf(' + "'" + element.url + "'" + ',' + "'" + element.id + "'" + ',' + "'" + element.status + "'" + ')"><div class="card border-dark mb-2"><div class="card-header text-dark fw-bold">' + element.inputSubject + '</div><div class="card-body text-dark"><div class="row"><div class="col-9">' + element.fullname + '</div><div class="col-3 fw-bold">' + element.showTime + ' น.</div></div></div></div></a>';
+                        var color = 'info';
+                        if (element.type != 1) {
+                            var color = 'warning';
+                        }
+                        $html = '<a href="javascript:void(0)" onclick="openPdf(' + "'" + element.url + "'" + ',' + "'" + element.id + "'" + ',' + "'" + element.status + "'" + ',' + "'" + element.type + "'" + ',' + "'" + element.is_number_stamp + "'" + ',' + "'" + element.inputBookregistNumber + "'" + ')"><div class="card border-' + color + ' mb-2"><div class="card-header text-dark fw-bold">' + element.inputSubject + '</div><div class="card-body text-dark"><div class="row"><div class="col-9">' + element.fullname + '</div><div class="col-3 fw-bold">' + element.showTime + ' น.</div></div></div></div></a>';
                         $('#box-card-item').append($html);
                     });
                     $("#page-select-card").empty();
@@ -360,6 +476,53 @@
                             positionX: positionX,
                             positionY: positionY,
                             pages: pages
+                        },
+                        dataType: "json",
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        success: function(response) {
+                            if (response.status) {
+                                Swal.fire("", "บันทึกเรียบร้อย", "success");
+                                setTimeout(() => {
+                                    location.reload();
+                                }, 1000);
+                            } else {
+                                Swal.fire("", "บันทึกไม่สำเร็จ", "error");
+                            }
+                        }
+                    });
+                }
+            });
+        } else {
+            Swal.fire("", "กรุณาเลือกตำแหน่งของตราประทับ", "info");
+        }
+    });
+    $('#number-save').click(function(e) {
+        e.preventDefault();
+        var id = $('#id').val();
+        var positionX = $('#positionX').val();
+        var positionY = $('#positionY').val();
+        var pages = $('#page-select').find(":selected").val();
+        var number_id = $('#number_id').val();
+        if (id != '' && positionX != '' && positionY != '') {
+            Swal.fire({
+                title: "ยืนยันการลงบันทึกเวลา",
+                showCancelButton: true,
+                confirmButtonText: "ตกลง",
+                cancelButtonText: `ยกเลิก`,
+                icon: 'question'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: "post",
+                        url: "/book/number_save",
+                        data: {
+                            id: id,
+                            positionX: positionX,
+                            positionY: positionY,
+                            pages: pages,
+                            number_id: number_id
                         },
                         dataType: "json",
                         headers: {
@@ -441,6 +604,122 @@
                 });
             }
         });
+    });
+</script>
+<script>
+    var input_hiddenFiles = '';
+    browseBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', function(event) {
+        var file = event.target.files[0];
+        if (file && file.type === 'application/pdf') {
+            handlePDF(file);
+            // fileInput.value = '';
+        } else {
+            Swal.fire({
+                title: "เฉพาะไฟล์นามสกุลที่เป็น .pdf",
+                icon: "info",
+                confirmButtonText: "ตกลง",
+            });
+        }
+    });
+
+    function handlePDF(file) {
+        $('#upload-area').hide();
+        $('#pdf-container').show();
+        document.getElementById('save-pdf').disabled = false;
+        uploadArea.style.opacity = '0';
+        uploadArea.style.position = 'absolute';
+        const fileURL = URL.createObjectURL(file);
+        const loadingTask = pdfjsLib.getDocument(fileURL);
+        loadingTask.promise.then(function(pdf) {
+            for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
+                pdf.getPage(pageNumber).then(function(page) {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const viewport = page.getViewport({
+                        scale: 1.5
+                    });
+
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    const renderContext = {
+                        canvasContext: ctx,
+                        viewport: viewport
+                    };
+                    page.render(renderContext);
+                    pdfContainer.appendChild(canvas);
+                });
+            }
+            pdfContainer.classList.remove('hidden');
+        });
+    }
+    uploadArea.addEventListener('dragover', (event) => {
+        event.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (event) => {
+        event.preventDefault();
+        uploadArea.classList.remove('dragover');
+
+        const file = event.dataTransfer.files[0];
+        if (file && file.type === 'application/pdf') {
+            handlePDF(file);
+        } else {
+            alert('Please upload a PDF file.');
+        }
+    });
+
+    $('#save-pdf').click(function(e) {
+        e.preventDefault();
+        var fileInput = document.getElementById('file-input');
+        var file = fileInput.files[0];
+        var id = $('#id').val();
+
+        if (file) {
+            var formData = new FormData();
+            formData.append('file', file);
+            formData.append('id', id);
+
+            $.ajax({
+                type: "post",
+                url: "/book/uploadPdf",
+                data: formData,
+                dataType: "json",
+                processData: false,
+                contentType: false,
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    if (response.status) {
+                        Swal.fire("", "บันทึกเรียบร้อย", "success");
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        Swal.fire("", "บันทึกไม่สำเร็จ", "error");
+                    }
+                }
+            });
+            // fetch('server_upload_url', {
+            //         method: 'POST',
+            //         body: formData
+            //     })
+            //     .then(response => response.json())
+            //     .then(data => {
+            //         console.log('Success:', data);
+            //     })
+            //     .catch(error => {
+            //         console.error('Error:', error);
+            //     });
+        } else {
+            alert('Please select a file!');
+        }
     });
 </script>
 

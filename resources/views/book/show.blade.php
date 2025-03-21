@@ -12,27 +12,50 @@
         margin-bottom: 10px;
     }
 
-    #pdf-container {
-        height: calc(100vh - 108px);
-        width: 90%;
-        background-color: #fff;
-        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-        margin: 0px auto;
-        overflow-y: auto;
-    }
-
-    #pdf-container canvas {
-        margin-bottom: 20px;
-        border: 1px solid #ccc;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    }
-
     .hidden {
         display: none;
     }
 
     span.req {
         color: red;
+    }
+
+    #upload-area {
+        border: 2px dashed #ccc;
+        padding: 10px;
+        text-align: center;
+        background-color: #fff;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+
+    #upload-area.dragover {
+        border-color: #007bff;
+        background-color: #f8f9fa;
+    }
+
+    .upload-icon {
+        width: 80px;
+        height: auto;
+        margin-bottom: 20px;
+    }
+
+    #pdf-container {
+        background-color: #fff;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        margin: 0px auto;
+        overflow-y: auto;
+        width: 100%;
+    }
+
+    #pdf-container canvas {
+        margin-bottom: 20px;
+        border: 1px solid #ccc;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     }
 </style>
 @endsection
@@ -54,7 +77,10 @@
                     </div>
                     <div class="col-6 d-flex justify-content-end mb-3">
                         <button class="btn btn-outline-dark btn-sm hidden btn-default" style="margin-right: 5px;font-size: 15px;" id="add-stamp" title="ตราประทับ">ตราประทับ</button>
+                        <button class="btn btn-outline-dark btn-sm hidden btn-default" style="margin-right: 5px;font-size: 15px;" id="number-stamp" title="ประทับเลขที่รับ">ประทับเลขที่รับ</button>
+                        <button class="btn btn-outline-dark btn-sm hidden btn-default" style="margin-right: 5px;font-size: 15px;" id="number-save" title="บันทึก" disabled><i class="fa fa-floppy-o"></i></button>
                         <button class="btn btn-outline-dark btn-sm hidden btn-default" style="margin-right: 5px;font-size: 15px;" id="save-stamp" title="บันทึก" disabled><i class="fa fa-floppy-o"></i></button>
+                        <button class="btn btn-outline-dark btn-sm hidden btn-default" style="margin-right: 5px;font-size: 15px;" id="save-pdf" title="บันทึก" disabled><i class="fa fa-floppy-o"></i></button>
                         <button class="btn btn-outline-dark btn-sm hidden btn-default" style="margin-right: 5px;font-size: 15px;" id="send-to" title="แทงเรื่อง"><i class="fa fa-send-o"></i></button>
                         <button class="btn btn-outline-dark btn-sm hidden btn-default" style="margin-right: 5px;font-size: 15px;" id="send-signature" title="เกษียณหนังสือ" disabled><i class="fa fa-edit"></i></button>
                         <button class="btn btn-outline-dark btn-sm hidden btn-default" style="margin-right: 5px;font-size: 15px;" id="signature-save" title="บันทึกข้อมูล" disabled><i class="fa fa-floppy-o"></i></button>
@@ -72,9 +98,20 @@
     </div>
     <div class="col-3">
         <div id="box-card-item" style="height: 770px;overflow: auto;">
-            @foreach($book as $rec)
-            <a href="javascript:void(0)" onclick="openPdf('{{$rec->url}}','{{$rec->id}}','{{$rec->status}}')">
-                <div class="card border-dark mb-2">
+            @foreach ($book as $rec)
+            <?php
+            $color = 'info';
+            if ($rec->type != 1) {
+                $color = 'warning';
+            }
+            if ($rec->file) {
+                $action = "openPdf('" . $rec->url . "','" . $rec->id . "','" . $rec->status . "','" . $rec->type . "','" . $rec->is_number_stamp . "','" . $rec->inputBookregistNumber . "')";
+            } else {
+                $action = "uploadPdf('" . $rec->id . "')";
+            }
+            ?>
+            <a href="javascript:void(0)" onclick="{{$action}}">
+                <div class="card border-{{$color}} mb-2">
                     <div class="card-header text-dark fw-bold">{{$rec->inputSubject}}</div>
                     <div class="card-body text-dark">
                         <div class="row">
@@ -84,22 +121,6 @@
                     </div>
                 </div>
             </a>
-            <!-- <div class="card border-dark mb-2">
-                <div class="card-header text-dark fw-bold">
-                    <div class="row d-flex align-items-center">
-                        <div class="col-10">{{$rec->inputSubject}}</div>
-                        <div class="col-2 fw-bold"><button type="button" class="btn btn-sm btn-outline-dark"><i class="fa fa-search"></i></button></div>
-                    </div>
-                </div>
-                <a href="javascript:void(0)" onclick="openPdf('{{$rec->url}}','{{$rec->id}}','{{$rec->status}}')">
-                    <div class="card-body text-dark">
-                        <div class="row">
-                            <div class="col-9">{{ $rec->fullname }}</div>
-                            <div class="col-3 fw-bold">{{ $rec->showTime }} น.</div>
-                        </div>
-                    </div>
-                </a>
-            </div> -->
             @endforeach
         </div>
         <div class="d-flex justify-content-end mt-2">
@@ -112,7 +133,7 @@
             <button class="btn btn-outline-dark btn-sm" style="margin-left: 5px;font-size: 5px;" id="nextPage"><i class="fa fa-arrow-circle-right"></i></button>
         </div>
     </div>
-    <div class="col-9">
+    <div class="col-9" id="div-showPdf">
         <div style="height: 803px; overflow-y: auto; border: 1px solid; display: grid; place-items: center; position: relative;" id="div-canvas">
             <div style="position: relative;">
                 <canvas id="pdf-render"></canvas>
@@ -120,7 +141,23 @@
             </div>
         </div>
     </div>
+    <div class="col-9 hidden" id="div-uploadPdf">
+        <div class="col-12" id="uploadDiv">
+            <div style="height: 803px; overflow-y: auto;display: grid;position: relative;">
+                <div id="upload-area">
+                    <div class="upload-container">
+                        <img src="{{url('/template/icon/upload.png')}}" alt="Cloud Upload Icon" class="upload-icon">
+                        <input type="file" id="file-input" name="file-input" style="opacity: 0; position: absolute;" accept="application/pdf">
+                        <p>DRAG & DROP FILE HERE OR</p>
+                        <button type="button" id="browse-btn" class="btn btn-outline-info">Browse files</button>
+                    </div>
+                </div>
+                <div id="pdf-container" class="hidden" style="overflow-y: scroll;"></div>
+            </div>
+        </div>
+    </div>
     <input type="hidden" name="id" id="id">
+    <input type="hidden" name="number_id" id="number_id">
     <input type="hidden" name="users_id" id="users_id">
     <input type="hidden" name="positionX" id="positionX">
     <input type="hidden" name="positionY" id="positionY">
