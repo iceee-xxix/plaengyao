@@ -294,11 +294,6 @@
         }
         if (type == 2) {
             if (is_check == '' || is_check == 'null') {
-                $('#number-stamp').show();
-                $('#number-save').show();
-                $('#add-stamp').hide();
-                $('#save-stamp').hide();
-
             } else {
                 if (status == 1) {
                     $('#add-stamp').show();
