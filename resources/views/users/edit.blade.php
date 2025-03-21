@@ -35,12 +35,18 @@
                             </div>
                         </div>
                         <div class="mb-3 row">
-                            <label for="email" class="col-sm-2 col-form-label">รหัสผ่านอีเมล :</label>
+                            <label for="password" class="col-sm-2 col-form-label">รหัสผ่านอีเมล :</label>
                             <div class="col-sm-10">
                                 <input class="form-control" type="password" name="password" id="password" autocomplete="off">
                             </div>
                         </div>
                     <?php } ?>
+                    <div class="mb-3 row">
+                        <label for="passwordLogin" class="col-sm-2 col-form-label">รหัสผ่าน :</label>
+                        <div class="col-sm-10">
+                            <input class="form-control" type="password" name="passwordLogin" id="passwordLogin" autocomplete="off">
+                        </div>
+                    </div>
                     <div class="mb-3 row">
                         <label for="inputPassword" class="col-sm-2 col-form-label">อัปโหลดลายเซ็น :</label>
                         <div class="col-sm-10">

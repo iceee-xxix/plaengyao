@@ -81,8 +81,11 @@ class UsersController extends Controller
             if (isset($input['email'])) {
                 $users->username = $input['email'];
             }
-            if (!empty($password)) {
+            if (!empty($input['password'])) {
                 $users->password_email = $input['password'];
+            }
+            if (!empty($input['passwordLogin'])) {
+                $users->password = password_hash($input['passwordLogin'], PASSWORD_DEFAULT);
             }
             $users->updated_at = date('Y-m-d H:i:s');
             if ($request->hasFile('formFile')) {
