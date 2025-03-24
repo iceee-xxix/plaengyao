@@ -50,6 +50,13 @@ Route::middleware('auth.admin')->group(function () {
     Route::get('/users/listData', [UsersController::class, 'listData'])->name('users.listData');
     Route::get('/users/edit/{id}', [UsersController::class, 'edit'])->name('users.edit');
     Route::post('/users/save', [UsersController::class, 'save'])->name('users.save');
+    Route::get('/users/change_role/{id}', [UsersController::class, 'change_role'])->name('users.change_role');
+    Route::get('/users/permission/{id}', [UsersController::class, 'edit_permission'])->name('users.permission');
+    Route::get('/users/listDataPermission', [UsersController::class, 'listDataPermission'])->name('users.listDataPermission');
+    Route::get('/users/create_permission/{id}', [UsersController::class, 'create_permission'])->name('users.create_permission');
+    Route::get('/users/form_permission/{id}', [UsersController::class, 'form_permission'])->name('users.form_permission');
+    Route::post('/users/insertPermission', [UsersController::class, 'insertPermission'])->name('users.insertPermission');
+    Route::post('/users/updatePermission', [UsersController::class, 'updatePermission'])->name('users.updatePermission');
 
     Route::get('/tracking', [TrackController::class, 'index'])->name('tracking.index');
     Route::get('/tracking/detail/{id}', [TrackController::class, 'detail'])->name('tracking.detail');

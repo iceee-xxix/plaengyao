@@ -4,6 +4,8 @@ use App\Models\Book;
 use App\Models\BookModel;
 use App\Models\Log_active_book;
 use App\Models\Log_status_book;
+use App\Models\User;
+use App\Models\Users_permission;
 
 function status_helper($data)
 {
@@ -185,4 +187,32 @@ function log_active($data)
         $message = 'บันทึกไม่สำเร็จ';
     }
     return $message;
+}
+
+
+function role_user()
+{
+    $role = Users_permission::select('users_permissions.*', 'permissions.permission_name', 'positions.position_name')
+        ->leftJoin('permissions', 'users_permissions.permission_id', '=', 'permissions.id')
+        ->leftJoin('positions', 'users_permissions.position_id', '=', 'positions.id')
+        ->where('users_permissions.users_id', auth()->user()->id)
+        ->get();
+    if (count($role) <= 0) {
+        $insert  = new Users_permission();
+        $insert->permission_id = auth()->user()->permission_id;
+        $insert->position_id = auth()->user()->position_id;
+        $insert->users_id = auth()->user()->id;
+        $insert->created_by = auth()->user()->id;
+        $insert->created_at = date('Y-m-d H:i:s');
+        $insert->updated_by = auth()->user()->id;
+        $insert->updated_at = date('Y-m-d H:i:s');
+        if ($insert->save()) {
+            $role = Users_permission::select('users_permissions.*', 'permissions.permission_name', 'positions.position_name')
+                ->leftJoin('permissions', 'users_permissions.permission_id', '=', 'permissions.id')
+                ->leftJoin('positions', 'users_permissions.position_id', '=', 'positions.id')
+                ->where('users_permissions.users_id', auth()->user()->id)
+                ->get();
+        }
+    }
+    return $role;
 }

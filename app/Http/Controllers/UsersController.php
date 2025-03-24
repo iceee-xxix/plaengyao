@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Permission;
 use App\Models\Position;
 use App\Models\User;
+use App\Models\Users_permission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -52,7 +53,7 @@ class UsersController extends Controller
             ->orderBy('users.id', 'asc')
             ->get();
         foreach ($users as $key => $value) {
-            $value->action = '<a href="' . url('/users/edit/' . $value->id) . '" class="btn btn-sm btn-outline-primary"><i class="fa fa-edit"></i></a>';
+            $value->action = '<a href="' . url('/users/permission/' . $value->id) . '" class="btn btn-sm btn-outline-primary m-1"><i class="fa fa-users"></i></a><a href="' . url('/users/edit/' . $value->id) . '" class="btn btn-sm btn-outline-primary"><i class="fa fa-edit"></i></a>';
         }
         $data['data'] = $users;
         return response()->json($data);
@@ -100,6 +101,112 @@ class UsersController extends Controller
                 } else {
                     return redirect('/users/edit/' . $input['id'])->with('success', 'แก้ไขข้อมูลสำเร็จ');
                 }
+            }
+        }
+    }
+
+    public function change_role($id)
+    {
+        $users = User::find(auth()->user()->id);
+        $role = Users_permission::find($id);
+        if ($role) {
+            $users->permission_id = $role->permission_id;
+            $users->position_id = $role->position_id;
+            if ($users->save()) {
+                return redirect()->back();
+            }
+        }
+    }
+
+    public function edit_permission($id)
+    {
+        if ($this->permission_id != 9) {
+            if ($id != auth()->user()->id) {
+                return redirect('/users/edit/' . auth()->user()->id);
+            }
+        }
+        $data['permission_data'] = $this->permission_data;
+        $data['function_key'] = 'listUsers';
+        $data['id'] = $id;
+
+        return view('users.permission', $data);
+    }
+
+    public function listDataPermission(Request $request)
+    {
+        $id = $request->input('id');
+        $role = Users_permission::select('users_permissions.*', 'permissions.permission_name', 'positions.position_name')
+            ->leftJoin('permissions', 'users_permissions.permission_id', '=', 'permissions.id')
+            ->leftJoin('positions', 'users_permissions.position_id', '=', 'positions.id')->where('users_id', $id)->get();
+        $data['data'] = $role;
+        foreach ($role as $key => $value) {
+            $value->action = '<a href="' . url('/users/form_permission/' . $value->id) . '" class="btn btn-sm btn-outline-primary m-1"><i class="fa fa-edit"></i></a>
+            <a href="' . url('/users/delete/' . $value->id) . '" class="btn btn-sm btn-outline-primary"><i class="fa fa-trash-o"></i></a>';
+        }
+        $data['data'] = $role;
+        return response()->json($data);
+    }
+
+    public function create_permission($id)
+    {
+        if ($this->permission_id != 9) {
+            return redirect('/users/edit/' . auth()->user()->id);
+        }
+        $data['permission_data'] = $this->permission_data;
+        $data['function_key'] = 'listUsers';
+        $data['action'] = '/users/insertPermission';
+        $data['permission'] = Permission::get();
+        $data['position'] = Position::get();
+        $data['id'] = $id;
+        return view('users.create', $data);
+    }
+
+    public function form_permission($id)
+    {
+        if ($this->permission_id != 9) {
+            return redirect('/users/edit/' . auth()->user()->id);
+        }
+        $data['permission_data'] = $this->permission_data;
+        $data['function_key'] = 'listUsers';
+        $info = Users_permission::find($id);
+        $data['info'] = $info;
+        $data['action'] = '/users/updatePermission';
+        $data['permission'] = Permission::get();
+        $data['position'] = Position::get();
+        return view('users.form', $data);
+    }
+
+    public function insertPermission(Request $request)
+    {
+        $input = $request->input();
+        $permission = new Users_permission();
+        $permission->permission_id = $input['select_permission'];
+        $permission->position_id = $input['select_position'];
+        $permission->users_id = $input['id'];
+        $permission->created_by = auth()->user()->id;
+        $permission->created_at = date('Y-m-d H:i:s');
+        $permission->updated_by = auth()->user()->id;
+        $permission->updated_at = date('Y-m-d H:i:s');
+        if ($permission->save()) {
+            return redirect()->route('users.listUsers')->with('success', 'แก้ไขข้อมูลสำเร็จ');
+        } else {
+            return redirect('/users/edit/' . $input['id'])->with('success', 'แก้ไขข้อมูลสำเร็จ');
+        }
+    }
+
+    public function updatePermission(Request $request)
+    {
+        $input = $request->input();
+        $update = Users_permission::find($input['id']);
+        if ($update) {
+            $update->permission_id = $input['select_permission'];
+            $update->position_id = $input['select_position'];
+            $update->updated_by = auth()->user()->id;
+            $update->updated_at = date('Y-m-d H:i:s');
+            if ($update->save()) {
+                return redirect()->route('users.listUsers')->with('success', 'แก้ไขข้อมูลสำเร็จ');
+            } else {
+                return redirect('/users/edit/' . $input['id'])->with('success', 'แก้ไขข้อมูลสำเร็จ');
             }
         }
     }

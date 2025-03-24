@@ -23,7 +23,7 @@
                     </a>
                     <div class="dropdown-menu dropdown-user-profile dropdown-menu-end pc-h-dropdown" style="max-width:450px;">
                         <div class="dropdown-header">
-                            <div class="d-flex mb-1">
+                            <div class="d-flex mb-3">
                                 <div class="flex-shrink-0">
                                     <a href="{{url('/users/edit/'.auth()->user()->id)}}">
                                         <img src="{{asset('dist/assets/images/user/avatar-2.jpg')}}" alt="user-image" class="user-avtar wid-35">
@@ -34,6 +34,21 @@
                                     <span><?= session()->get('permission_name') ?> <?= $permission_data->permission_name ?></span>
                                 </div>
                                 <a href="{{url('/login/logout')}}" class=" pc-head-link bg-transparent"><i class="fa fa-sign-out"></i></a>
+                            </div>
+                            <div class="card">
+                                <ul class="list-group list-group-flush">
+                                    <?php $role = role_user();
+                                    foreach ($role as &$rs) {
+                                        $active = '';
+                                        if ($rs->permission_id == auth()->user()->permission_id && $rs->position_id == auth()->user()->position_id) {
+                                            $active = 'active';
+                                        }
+                                    ?>
+                                        <a href="/users/change_role/<?= $rs->id ?>">
+                                            <li class="list-group-item <?= $active ?>" style="padding:10px;"><?= $rs->permission_name . ' ' . $rs->position_name ?></li>
+                                        </a>
+                                    <?php } ?>
+                                </ul>
                             </div>
                         </div>
                     </div>
