@@ -159,7 +159,7 @@
                         <div class="mb-2 row">
                             <label for="inputBookto" class="col-sm-2 col-form-label d-flex justify-content-end"><span class="req">*</span>เรียน : </label>
                             <div class="col-sm-10">
-                                <input type="text" class="form-control" id="inputBookto" name="inputBookto" autocomplete="off">
+                                <input type="text" class="form-control" id="inputBookto" name="inputBookto">
                             </div>
                         </div>
                         <div class="mb-2 row">
@@ -183,11 +183,7 @@
                         <div class="mb-2 row">
                             <label for="selectBookFrom" class="col-sm-2 col-form-label d-flex justify-content-end"><span class="req">*</span>จาก : </label>
                             <div class="col-sm-10">
-                                <select class="form-control" name="selectBookFrom" id="selectBookFrom">
-                                    <option value="" disabled selected>กรุณาเลือก</option>
-                                    <option value="1">ผู้ดูแลระบบ</option>
-                                    <option value="2">ผู้ทดสอบระบบ</option>
-                                </select>
+                                <input class="form-control" type="text" name="selectBookFrom" id="selectBookFrom">
                             </div>
                         </div>
                         <div class="mb-2 row">
