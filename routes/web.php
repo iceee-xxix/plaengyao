@@ -4,6 +4,7 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\BooksenderController;
 use App\Http\Controllers\EmailController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TrackController;
 use App\Http\Controllers\UsersController;
@@ -68,6 +69,12 @@ Route::middleware('auth.admin')->group(function () {
     Route::post('/bookSender/bookType', [BooksenderController::class, 'bookType'])->name('bookSender.bookType');
     Route::post('/bookSender/getPosition', [BooksenderController::class, 'getPosition'])->name('bookSender.getPosition');
     Route::post('/bookSender/save', [BooksenderController::class, 'save'])->name('bookSender.save');
+
+    Route::get('/permission', [PermissionController::class, 'index'])->name('permission.index');
+    Route::get('/permission/create', [PermissionController::class, 'create'])->name('permission.create');
+    Route::get('/permission/edit/{id}', [PermissionController::class, 'edit'])->name('permission.edit');
+    Route::get('/permission/listData', [PermissionController::class, 'listData'])->name('permission.listData');
+    Route::post('/permission/save', [PermissionController::class, 'save'])->name('permission.save');
 });
 
 Route::get('/email', [EmailController::class, 'index'])->name('email.index');
