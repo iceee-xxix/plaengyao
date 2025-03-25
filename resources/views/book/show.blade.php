@@ -115,7 +115,7 @@
                     <div class="card-header text-dark fw-bold">{{$rec->inputSubject}}</div>
                     <div class="card-body text-dark">
                         <div class="row">
-                            <div class="col-9">{{ $rec->fullname }}</div>
+                            <div class="col-9">{{ $rec->selectBookFrom }}</div>
                             <div class="col-3 fw-bold">{{ $rec->showTime }} น.</div>
                         </div>
                     </div>

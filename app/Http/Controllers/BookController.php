@@ -175,10 +175,10 @@ class BookController extends Controller
         Session::forget('keyword');
         $book = new Book;
         if ($this->permission_id == '1' || $this->permission_id == '2') {
-            $book = $book->select('books.*', 'users.fullname')->whereIn('status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->leftJoin('users', 'books.selectBookFrom', '=', 'users.id')->limit(5)->get();
+            $book = $book->select('books.*')->whereIn('status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->limit(5)->get();
         } else {
             $book = $book->where('log_status_books.position_id', $this->position_id);
-            $book = $book->select('books.*', 'users.fullname', 'log_status_books.status', 'log_status_books.file')->whereIn('log_status_books.status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->leftJoin('users', 'books.selectBookFrom', '=', 'users.id')->join('log_status_books', 'books.id', '=', 'log_status_books.book_id')->limit(5)->get();
+            $book = $book->select('books.*', 'log_status_books.status', 'log_status_books.file')->whereIn('log_status_books.status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->join('log_status_books', 'books.id', '=', 'log_status_books.book_id')->limit(5)->get();
         }
         foreach ($book as &$rec) {
             $rec->showTime = date('H:i', strtotime($rec->inputRecieveDate));
@@ -211,18 +211,18 @@ class BookController extends Controller
                 ->orWhereRaw('inputContent like "%' . $search . '%"')
                 ->orWhereRaw('inputNote like "%' . $search . '%"');
             if ($this->permission_id == '1' || $this->permission_id == '2') {
-                $book = $query->select('books.*', 'users.fullname')->whereIn('status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->leftJoin('users', 'books.selectBookFrom', '=', 'users.id')->limit(5)->offset($pages)->get();
+                $book = $query->select('books.*')->whereIn('status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->limit(5)->offset($pages)->get();
             } else {
                 $query = $query->where('log_status_books.position_id', $this->position_id);
-                $book = $query->select('books.*', 'users.fullname', 'log_status_books.status', 'log_status_books.file')->whereIn('log_status_books.status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->leftJoin('users', 'books.selectBookFrom', '=', 'users.id')->leftJoin('log_status_books', 'books.id', '=', 'log_status_books.book_id')->limit(5)->offset($pages)->get();
+                $book = $query->select('books.*', 'log_status_books.status', 'log_status_books.file')->whereIn('log_status_books.status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->leftJoin('log_status_books', 'books.id', '=', 'log_status_books.book_id')->limit(5)->offset($pages)->get();
             }
         } else {
             $query = new Book;
             if ($this->permission_id == '1' || $this->permission_id == '2') {
-                $book = $query->select('books.*', 'users.fullname')->whereIn('status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->leftJoin('users', 'books.selectBookFrom', '=', 'users.id')->limit(5)->offset($pages)->get();
+                $book = $query->select('books.*')->whereIn('status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->limit(5)->offset($pages)->get();
             } else {
                 $query = $query->where('log_status_books.position_id', $this->position_id);
-                $book = $query->select('books.*', 'users.fullname', 'log_status_books.status', 'log_status_books.file')->whereIn('log_status_books.status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->leftJoin('users', 'books.selectBookFrom', '=', 'users.id')->leftJoin('log_status_books', 'books.id', '=', 'log_status_books.book_id')->limit(5)->offset($pages)->get();
+                $book = $query->select('books.*', 'log_status_books.status', 'log_status_books.file')->whereIn('log_status_books.status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->leftJoin('log_status_books', 'books.id', '=', 'log_status_books.book_id')->limit(5)->offset($pages)->get();
             }
         }
         if (!empty($book)) {
@@ -271,9 +271,9 @@ class BookController extends Controller
             }
         }
         if ($this->permission_id == '1' || $this->permission_id == '2') {
-            $book = $query->select('books.*', 'users.fullname')->whereIn('status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->leftJoin('users', 'books.selectBookFrom', '=', 'users.id')->limit(5)->offset($pages)->get();
+            $book = $query->select('books.*')->whereIn('status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->limit(5)->offset($pages)->get();
         } else {
-            $book = $query->select('books.*', 'users.fullname', 'log_status_books.status', 'log_status_books.file')->whereIn('log_status_books.status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->leftJoin('users', 'books.selectBookFrom', '=', 'users.id')->leftJoin('log_status_books', 'books.id', '=', 'log_status_books.book_id')->limit(5)->offset($pages)->get();
+            $book = $query->select('books.*', 'log_status_books.status', 'log_status_books.file')->whereIn('log_status_books.status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->limit(5)->offset($pages)->get();
         }
         if (!empty($search)) {
             $query = Book::whereRaw('inputSubject like "%' . $search . '%"')
@@ -293,9 +293,9 @@ class BookController extends Controller
             }
         }
         if ($this->permission_id == '1' || $this->permission_id == '2') {
-            $book_count = $query->whereIn('status', $this->permission)->leftJoin('users', 'books.selectBookFrom', '=', 'users.id')->count();
+            $book_count = $query->whereIn('status', $this->permission)->count();
         } else {
-            $book_count = $query->whereIn('log_status_books.status', $this->permission)->leftJoin('users', 'books.selectBookFrom', '=', 'users.id')->leftJoin('log_status_books', 'books.id', '=', 'log_status_books.book_id')->count();
+            $book_count = $query->whereIn('log_status_books.status', $this->permission)->leftJoin('log_status_books', 'books.id', '=', 'log_status_books.book_id')->count();
         }
         if (!empty($book)) {
             foreach ($book as &$rec) {
