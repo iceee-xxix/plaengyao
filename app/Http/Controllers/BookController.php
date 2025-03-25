@@ -75,6 +75,7 @@ class BookController extends Controller
     {
         if ($request->hasFile('file-input') || isset($request['select-email'])) {
             $book = new Book;
+            $book->type = 1;
             $book->selectBookregist = $request['selectBookregist'];
             $book->inputBookregistNumber = $request['inputBookregistNumber'];
             $book->inputBooknumberOrgStruc = $request['inputBooknumberOrgStruc'];
