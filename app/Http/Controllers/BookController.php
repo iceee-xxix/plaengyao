@@ -120,20 +120,21 @@ class BookController extends Controller
                             $attachment->save(storage_path('app/public/uploads/'));
                             rename(storage_path('app/public/uploads/' . $attachment->name), storage_path('app/public/' . $filePath));
                         }
+                        $book->file = ($filePath) ? $filePath : '';
                     }
                 }
             } else {
                 if ($request->hasFile('file-input')) {
                     $file = $request->file('file-input');
                     $filePath = $file->store('uploads');
+                    $book->file = ($filePath) ? $filePath : '';
                 }
             }
             if ($request->hasFile('file-attachments')) {
                 $attachments = $request->file('file-attachments');
                 $filePathAttachments = $attachments->store('attachments');
+                $book->fileAttachments = ($filePathAttachments) ? $filePathAttachments : '';
             }
-            $book->file = ($filePath) ? $filePath : '';
-            $book->fileAttachments = ($filePathAttachments) ? $filePathAttachments : '';
             if ($book->save()) {
                 log_active([
                     'users_id' => auth()->user()->id,
