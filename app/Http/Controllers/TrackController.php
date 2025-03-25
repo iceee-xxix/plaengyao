@@ -178,7 +178,7 @@ class TrackController extends Controller
                                 ' . $value->detail . '
                             </div>
                             <div class="card-body">
-                                <p class="card-text">' . $value->fullname . ' ได้ทำการ' . $value->detail . ' วันที่ ' . DateTimeThai($value->date) . ' น.</p>
+                                <p class="card-text">' . $value->fullname . ' ได้ทำการ' . $value->detail . ' วันที่ ' . DateTimeThai($value->datetime) . ' น.</p>
                             </div>
                         </div>';
             }
