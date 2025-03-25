@@ -185,7 +185,7 @@ class BookController extends Controller
             $rec->url = url("storage/" . $rec->file);
             $rec->inputBookregistNumber = numberToThaiDigits($rec->inputBookregistNumber);
         }
-        $book_count = Book::join('users', 'books.selectBookFrom', '=', 'users.id')->count();
+        $book_count = Book::count();
         $data['totalPages'] = (int)ceil($book_count / 5);
         $data['book'] = $book;
         return view('book.show', $data);
