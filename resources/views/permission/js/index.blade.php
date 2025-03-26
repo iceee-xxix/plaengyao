@@ -20,7 +20,7 @@
             url: "https://cdn.datatables.net/plug-ins/1.10.21/i18n/Thai.json"
         },
         columns: [{
-                data: 'permission_name',
+                data: 'position_name',
                 class: 'text-left',
             },
             {
