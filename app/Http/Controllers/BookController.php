@@ -488,7 +488,7 @@ class BookController extends Controller
         $book = $query->where('id', $id)->first();
         if (!empty($book)) {
             $update = Log_status_book::where('position_id', $this->position_id)->where('book_id', $id)->first();
-            $update->status = 4;
+            $update->status = 3.5;
             $update->updated_at = date('Y-m-d H:i:s');
             $update->adminBookNumber = adminNumber();
             $update->adminDated = date('Y-m-d H:i:s');
@@ -501,7 +501,7 @@ class BookController extends Controller
                 $this->editPdf_admin($positionX, $positionY, $pages, $update);
                 log_active([
                     'users_id' => auth()->user()->id,
-                    'status' => 4,
+                    'status' => 3.5,
                     'datetime' => date('Y-m-d H:i:s'),
                     'detail' => 'ประทับตราลงรับ',
                     'book_id' => $id,
@@ -694,12 +694,17 @@ class BookController extends Controller
         $book = Book::where('id', $input['id'])->first();
         if (!empty($book)) {
             $update = Log_status_book::where('position_id', $this->position_id)->where('book_id', $input['id'])->first();
-            $update->status = 5;
+            if ($update->status == 3.5) {
+                $status = 4;
+            } else {
+                $status = 5;
+            }
+            $update->status = $status;
             $update->updated_at = date('Y-m-d H:i:s');
             if ($update->save()) {
                 log_active([
                     'users_id' => auth()->user()->id,
-                    'status' => 5,
+                    'status' => $status,
                     'datetime' => date('Y-m-d H:i:s'),
                     'detail' => 'เกษียณหนังสือ',
                     'book_id' => $input['id'],
@@ -751,6 +756,13 @@ class BookController extends Controller
                 $checkbox_text = '';
                 $checkbox_x = 0;
                 foreach ($checkedValues as $key => $value) {
+                    if ($checkedValues == 4) {
+                        $plus_y = 35;
+                    } else {
+                        $plus_y = 5;
+                    }
+                }
+                foreach ($checkedValues as $key => $value) {
                     switch ($value) {
                         case '1':
                             $checkbox_text = '(' . $this->users->fullname . ')';
@@ -762,7 +774,7 @@ class BookController extends Controller
                             $checkbox_text = convertDateToThai(date("Y-m-d"));
                             break;
                     }
-                    $pdf->Text($x, $y + 35 + (5 * $lineCount) + (5 * $key), $checkbox_text);
+                    $pdf->Text($x, $y + $plus_y + (5 * $lineCount) + (5 * $key), $checkbox_text);
                 }
                 $pdf->Image(public_path('storage/users/' . auth()->user()->signature), $x - 13, $y + 3 + (5 * $lineCount), 65, 30);
             }

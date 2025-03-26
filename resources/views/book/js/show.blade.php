@@ -547,14 +547,14 @@
         Swal.fire({
             title: 'เลือกหน่วยงานที่ต้องการแทงเรื่อง',
             html: `
-                <select id="position_id" name="states[]" multiple="multiple" class="swal2-input" style="width: 80%;">
+                <select id="select_position_id" name="states[]" multiple="multiple" class="swal2-input" style="width: 80%;">
                     @foreach($position as $key => $rec)
                     <option value="{{$key}}">{{$rec}}</option>
                     @endforeach
                 </select>
             `,
             didOpen: () => {
-                $('#position_id').select2({
+                $('#select_position_id').select2({
                     dropdownParent: $('.swal2-container')
                 });
             },
@@ -565,7 +565,7 @@
             cancelButtonText: `ยกเลิก`,
             preConfirm: () => {
                 // ดึงค่าที่เลือกจาก Select2
-                const selectedValue = $('#position_id').val();
+                const selectedValue = $('#select_position_id').val();
                 if (!selectedValue) {
                     Swal.showValidationMessage('ท่านยังไม่ได้เลือกหน่วยงาน');
                 }
@@ -702,17 +702,6 @@
                     }
                 }
             });
-            // fetch('server_upload_url', {
-            //         method: 'POST',
-            //         body: formData
-            //     })
-            //     .then(response => response.json())
-            //     .then(data => {
-            //         console.log('Success:', data);
-            //     })
-            //     .catch(error => {
-            //         console.error('Error:', error);
-            //     });
         } else {
             alert('Please select a file!');
         }

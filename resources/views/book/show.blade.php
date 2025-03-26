@@ -109,10 +109,14 @@
             } else {
                 $action = "uploadPdf('" . $rec->id . "')";
             }
+            $text = '';
+            if ($rec->status == 14) {
+                $text = '(เวียนหนังสือ)';
+            }
             ?>
             <a href="javascript:void(0)" onclick="{{$action}}">
                 <div class="card border-{{$color}} mb-2">
-                    <div class="card-header text-dark fw-bold">{{$rec->inputSubject}}</div>
+                    <div class="card-header text-dark fw-bold">{{$rec->inputSubject}} {{$text}}</div>
                     <div class="card-body text-dark">
                         <div class="row">
                             <div class="col-9">{{ $rec->selectBookFrom }}</div>
