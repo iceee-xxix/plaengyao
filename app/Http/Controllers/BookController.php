@@ -758,6 +758,7 @@ class BookController extends Controller
                 foreach ($checkedValues as $key => $value) {
                     if ($checkedValues == 4) {
                         $plus_y = 35;
+                        $pdf->Image(public_path('storage/users/' . auth()->user()->signature), $x - 13, $y + 3 + (5 * $lineCount), 65, 30);
                     } else {
                         $plus_y = 5;
                     }
@@ -776,7 +777,6 @@ class BookController extends Controller
                     }
                     $pdf->Text($x, $y + $plus_y + (5 * $lineCount) + (5 * $key), $checkbox_text);
                 }
-                $pdf->Image(public_path('storage/users/' . auth()->user()->signature), $x - 13, $y + 3 + (5 * $lineCount), 65, 30);
             }
         }
 
