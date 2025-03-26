@@ -630,17 +630,27 @@ class BookController extends Controller
         $book = $query->where('id', $id)->first();
         if (!empty($book)) {
             $update = Log_status_book::where('position_id', $position_id)->where('book_id', $id)->first();
-            $getForward = User::find($users_id);
-            $sql = Permission::where('id', $getForward->permission_id)->first();
+            if ($status == 14) {
+                $getForward = User::where('permission_id', 4)->where('position_id', $position_id)->first();
+                $update->parentUsers = $getForward->id;
+            } else {
+                $getForward = User::find($users_id);
+                $sql = Permission::where('id', $getForward->permission_id)->first();
+                $update->parentUsers = $users_id;
+            }
             $update->status = $status;
-            $update->parentUsers = $users_id;
             $update->updated_at = date('Y-m-d H:i:s');
             if ($update->save()) {
+                if ($status == 14) {
+                    $detail = 'ส่งเวียนหนังสือ';
+                } else {
+                    $detail = 'แทงเรื่อง (' . $getForward->fullname . '(' . $sql->permission_name . '))';
+                }
                 log_active([
                     'users_id' => auth()->user()->id,
                     'status' => $status,
                     'datetime' => date('Y-m-d H:i:s'),
-                    'detail' => 'แทงเรื่อง (' . $getForward->fullname . '(' . $sql->permission_name . '))',
+                    'detail' => $detail,
                     'book_id' => $id,
                     'position_id' => $update->position_id
                 ]);

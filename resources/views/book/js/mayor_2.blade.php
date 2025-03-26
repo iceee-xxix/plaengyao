@@ -5,6 +5,7 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     $('.btn-default').hide();
+    var signature = '{{$signature}}';
     var selectPageTable = document.getElementById('page-select-card');
     var pageTotal = '{{$totalPages}}';
     var pageNumTalbe = 1;
@@ -113,11 +114,171 @@
             var lines = text.split('\n');
             return lines.length - 1;
         }
+        // ฟังก์ชันในการวาดกากบาทเล็กๆ ที่มุมขวาบน
+        function drawMark(startX, startY, endX, endY) {
+            var markCanvas = document.getElementById('mark-layer');
+            var markCtx = markCanvas.getContext('2d');
+            markCtx.clearRect(0, 0, markCanvas.width, markCanvas.height);
+
+            markCtx.beginPath();
+            markCtx.rect(startX, startY, endX - startX, endY - startY);
+            markCtx.lineWidth = 1;
+            markCtx.strokeStyle = 'blue';
+            markCtx.stroke();
+
+            var crossSize = 10;
+            markCtx.beginPath();
+            markCtx.moveTo(endX - crossSize, startY + crossSize);
+            markCtx.lineTo(endX, startY);
+            markCtx.moveTo(endX, startY + crossSize);
+            markCtx.lineTo(endX - crossSize, startY);
+            markCtx.lineWidth = 2;
+            markCtx.strokeStyle = 'red';
+            markCtx.stroke();
+
+            markCanvas.addEventListener('click', function(event) {
+                var rect = markCanvas.getBoundingClientRect();
+                var clickX = event.clientX - rect.left;
+                var clickY = event.clientY - rect.top;
+
+                if (
+                    clickX >= endX - crossSize && clickX <= endX &&
+                    clickY >= startY && clickY <= startY + crossSize
+                ) {
+                    removeMarkListener();
+                    var markCtx = markCanvas.getContext('2d');
+                    markCtx.clearRect(0, 0, markCanvas.width, markCanvas.height);
+                }
+            });
+        }
+
+        function drawMarkSignature(startX, startY, endX, endY) {
+            var markCanvas = document.getElementById('mark-layer');
+            var markCtx = markCanvas.getContext('2d');
+            markCtx.clearRect(0, 0, markCanvas.width, markCanvas.height);
+
+            var img = new Image();
+            img.src = signature;
+            img.onload = function() {
+                markCtx.drawImage(img, startX, startY, 240, 130);
+                imgData = {
+                    x: startX,
+                    y: startY,
+                    width: 150,
+                    height: 100
+                };
+            }
+        }
+
+        function drawTextHeader(type, startX, startY, text) {
+            var markCanvas = document.getElementById('mark-layer');
+            var markCtx = markCanvas.getContext('2d');
+
+            markCtx.font = type;
+            markCtx.fillStyle = "blue";
+            markCtx.fillText(text, startX, startY);
+        }
+
+        function drawTextHeaderSignature(type, startX, startY, text) {
+            var markCanvas = document.getElementById('mark-layer');
+            var markCtx = markCanvas.getContext('2d');
+
+            markCtx.font = type;
+            markCtx.fillStyle = "blue";
+
+            var lines = text.split('\n');
+            var lineHeight = 20;
+            for (var i = 0; i < lines.length; i++) {
+                markCtx.fillText(lines[i], startX, startY + (i * lineHeight));
+            }
+        }
+        $('#modalForm').on('submit', function(e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+            $('#exampleModal').modal('hide');
+            Swal.showLoading();
+            $.ajax({
+                type: "post",
+                url: "/book/confirm_signature",
+                data: formData,
+                dataType: "json",
+                contentType: false,
+                processData: false,
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    if (response.status) {
+                        $('#exampleModal').modal('hide');
+                        setTimeout(() => {
+                            swal.close();
+                        }, 1000);
+                        resetMarking();
+                        removeMarkListener();
+                        document.getElementById('manager-save').disabled = false;
+
+                        markEventListener = function(e) {
+                            var markCanvas = document.getElementById('mark-layer');
+                            var markCtx = markCanvas.getContext('2d');
+                            var rect = markCanvas.getBoundingClientRect();
+                            var startX = (e.clientX - rect.left);
+                            var startY = (e.clientY - rect.top);
+
+                            var endX = startX + 213;
+                            var endY = startY + 115;
+
+                            markCoordinates = {
+                                startX,
+                                startY,
+                                endX,
+                                endY
+                            };
+                            $('#positionX').val(startX);
+                            $('#positionY').val(startY);
+
+                            var text = $('#modal-text').val();
+                            var lineBreakCount = countLineBreaks(text);
+                            var checkedValues = $('input[type="checkbox"]:checked').map(function() {
+                                return $(this).val();
+                            }).get();
+                            drawMarkSignature(startX - 40, startY + (20 * lineBreakCount), endX, endY);
+                            drawTextHeaderSignature('15px Sarabun', startX, startY, text);
+
+                            var i = 0;
+                            var checkbox_text = '';
+                            var checkbox_x = 0;
+                            checkedValues.forEach(element => {
+                                switch (element) {
+                                    case '1':
+                                        checkbox_text = '({{$users->fullname}})';
+                                        break;
+                                    case '2':
+                                        checkbox_text = '{{$permission_data->permission_name}}';
+                                        break;
+                                    case '3':
+                                        checkbox_text = '{{convertDateToThai(date("Y-m-d"))}}';
+                                        break;
+                                }
+                                console.log(checkbox_text);
+                                drawTextHeaderSignature('15px Sarabun', startX, (startY + 160 + (20 * lineBreakCount)) + (20 * i), checkbox_text);
+                                i++;
+                            });
+                        };
+
+                        var markCanvas = document.getElementById('mark-layer');
+                        markCanvas.addEventListener('click', markEventListener);
+                    } else {
+                        $('#exampleModal').modal('hide');
+                        Swal.fire("", response.message, "error");
+                    }
+                }
+            });
+        });
     }
 
     let markEventListener = null;
 
-    function openPdf(url, id, status) {
+    function openPdf(url, id, status, type, is_number, number, position_id) {
         $('.btn-default').hide();
         document.getElementById('manager-sinature').disabled = false;
         document.getElementById('save-stamp').disabled = true;
@@ -125,11 +286,19 @@
         $('#div-canvas').html('<div style="position: relative;"><canvas id="pdf-render"></canvas><canvas id="mark-layer" style="position: absolute; left: 0; top: 0;"></canvas></div>');
         pdf(url);
         $('#id').val(id);
+        $('#position_id').val(position_id);
         $('#positionX').val('');
         $('#positionY').val('');
         $('#txt_label').text('');
         $('#users_id').val('');
         document.getElementById('manager-save').disabled = true;
+        if (status == 12) {
+            $('#manager-sinature').show();
+            $('#manager-save').show();
+        }
+        if (status == 13) {
+            $('#manager-send').show();
+        }
         resetMarking();
         removeMarkListener();
     }
@@ -249,5 +418,257 @@
             }
         });
     });
+
+    $('#manager-save').click(function(e) {
+        e.preventDefault();
+        var id = $('#id').val();
+        var position_id = $('#position_id').val();
+        var positionX = $('#positionX').val();
+        var positionY = $('#positionY').val();
+        var pages = $('#page-select').find(":selected").val();
+        var text = $('#modal-text').val();
+        var checkedValues = $('input[type="checkbox"]:checked').map(function() {
+            return $(this).val();
+        }).get();
+        if (id != '' && positionX != '' && positionY != '') {
+            Swal.fire({
+                title: "ยืนยันการลงลายเซ็น",
+                showCancelButton: true,
+                confirmButtonText: "ตกลง",
+                cancelButtonText: `ยกเลิก`,
+                icon: 'question'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: "post",
+                        url: "/book/manager_stamp",
+                        data: {
+                            id: id,
+                            positionX: positionX,
+                            positionY: positionY,
+                            pages: pages,
+                            status: 13,
+                            text: text,
+                            checkedValues: checkedValues,
+                            position_id: position_id
+                        },
+                        dataType: "json",
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        success: function(response) {
+                            if (response.status) {
+                                Swal.fire("", "บันทึกลายเซ็นเรียบร้อยแล้ว", "success");
+                                setTimeout(() => {
+                                    location.reload();
+                                }, 1000);
+                            } else {
+                                Swal.fire("", "บันทึกไม่สำเร็จ", "error");
+                            }
+                        }
+                    });
+                }
+            });
+        } else {
+            Swal.fire("", "กรุณาเลือกตำแหน่งของตราประทับ", "info");
+        }
+    });
+
+    $('#manager-send').click(function(e) {
+        e.preventDefault();
+        var id = $('#id').val();
+        var position_id = $('#position_id').val();
+        Swal.fire({
+            title: 'ท่านต้องการส่งเวียนหนังสือใช่หรือไม่',
+            html: '',
+            icon: 'question',
+            allowOutsideClick: false,
+            focusConfirm: true,
+            confirmButtonText: 'ตกลง',
+            showCancelButton: true,
+            cancelButtonText: `ยกเลิก`,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    type: "post",
+                    url: "/book/send_to_save",
+                    data: {
+                        id: id,
+                        status: 14,
+                        position_id: position_id
+                    },
+                    dataType: "json",
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        if (response.status) {
+                            if (response.status) {
+                                Swal.fire("", "บันทึกข้อมูลเรียบร้อย", "success");
+                                setTimeout(() => {
+                                    location.reload();
+                                }, 1000);
+                            } else {
+                                Swal.fire("", "บันทึกข้อมูลไม่สำเร็จ", "error");
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    });
+
+    $('#send-save').click(function(e) {
+        e.preventDefault();
+        var id = $('#id').val();
+        var users_id = $('#users_id').val();
+        var position_id = $('#position_id').val();
+        Swal.fire({
+            title: "ยืนยันการแทงเรื่อง",
+            showCancelButton: true,
+            confirmButtonText: "ตกลง",
+            cancelButtonText: `ยกเลิก`,
+            icon: 'question'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    type: "post",
+                    url: "/book/send_to_save",
+                    data: {
+                        id: id,
+                        users_id: users_id,
+                        status: 14,
+                        position_id: position_id
+                    },
+                    dataType: "json",
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        if (response.status) {
+                            if (response.status) {
+                                Swal.fire("", "แทงเรื่องเรียบร้อยแล้ว", "success");
+                                setTimeout(() => {
+                                    location.reload();
+                                }, 1000);
+                            } else {
+                                Swal.fire("", "แทงเรื่องไม่สำเร็จ", "error");
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    });
+    $('#signature-save').click(function(e) {
+        e.preventDefault();
+        var id = $('#id').val();
+        var positionX = $('#positionX').val();
+        var positionY = $('#positionY').val();
+        var pages = $('#page-select').find(":selected").val();
+        var text = $('#modal-text').val();
+        var checkedValues = $('input[type="checkbox"]:checked').map(function() {
+            return $(this).val();
+        }).get();
+        if (id != '' && positionX != '' && positionY != '') {
+            Swal.fire({
+                title: "ยืนยันการลงเกษียณหนังสือ",
+                showCancelButton: true,
+                confirmButtonText: "ตกลง",
+                cancelButtonText: `ยกเลิก`,
+                icon: 'question'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: "post",
+                        url: "/book/signature_stamp",
+                        data: {
+                            id: id,
+                            positionX: positionX,
+                            positionY: positionY,
+                            pages: pages,
+                            text: text,
+                            checkedValues: checkedValues
+                        },
+                        dataType: "json",
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        success: function(response) {
+                            if (response.status) {
+                                Swal.fire("", "ลงบันทึกเกษียณหนังสือเรียบร้อย", "success");
+                                setTimeout(() => {
+                                    location.reload();
+                                }, 1000);
+                            } else {
+                                Swal.fire("", "บันทึกไม่สำเร็จ", "error");
+                            }
+                        }
+                    });
+                }
+            });
+        } else {
+            Swal.fire("", "กรุณาเลือกตำแหน่งเกษียณหนังสือ", "info");
+        }
+    });
+    $(document).ready(function() {
+        $('#manager-sinature').click(function(e) {
+            e.preventDefault();
+            $('#exampleModal').modal('show');
+        });
+        $('#exampleModal').on('show.bs.modal', function(event) {
+            $('input[type="password"]').val('');
+            $('textarea').val('');
+        });
+    });
 </script>
+<div class="modal modal-lg fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="modalForm">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">เซ็นหนังสือ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3 row">
+                        <label for="inputPassword" class="col-sm-2 col-form-label"><span class="req">*</span>ข้อความเซ็นหนังสือ :</label>
+                        <div class="col-sm-10">
+                            <textarea rows="4" class="form-control" name="modal-text" id="modal-text"></textarea>
+                        </div>
+                    </div>
+                    <div class="mb-3 row">
+                        <div class="col-2">
+                        </div>
+                        <div class="col-sm-10 d-flex justify-content-center text-center">
+                            ({{$users->fullname}})<br>
+                            {{$permission_data->permission_name}}<br>
+                            {{convertDateToThai(date("Y-m-d"))}}
+                        </div>
+                    </div>
+                    <div class="mb-3 row">
+                        <label for="inputPassword" class="col-sm-2 col-form-label"><span class="req">*</span>รหัสผ่านเกษียน :</label>
+                        <div class="col-sm-10">
+                            <input type="password" class="form-control" id="modal-Password" name="modal-Password">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <label for="inputPassword" class="col-sm-2 col-form-label"><span class="req">*</span>แสดงผล :</label>
+                        <div class="col-sm-10 d-flex align-items-center">
+                            <ul class="list-group list-group-horizontal">
+                                <li class="list-group-item"><input class="form-check-input me-1" type="checkbox" name="modal-check[]" value="1" checked>ชื่อ-นามสกุล</li>
+                                <li class="list-group-item"><input class="form-check-input me-1" type="checkbox" name="modal-check[]" value="2" checked>ตำแหน่ง</li>
+                                <li class="list-group-item"><input class="form-check-input me-1" type="checkbox" name="modal-check[]" value="3" checked>วันที่</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" id="submit-modal" class="btn btn-primary">ตกลง</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
