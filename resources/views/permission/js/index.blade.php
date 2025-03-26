@@ -10,15 +10,11 @@
 </script>
 @endif
 <script>
-    var id = '{{$id}}';
     $('#example').DataTable({
         processing: true,
         ajax: {
             url: "/permission/listData",
             type: "GET",
-            data: {
-                id: id
-            }
         },
         language: {
             url: "https://cdn.datatables.net/plug-ins/1.10.21/i18n/Thai.json"
