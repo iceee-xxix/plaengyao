@@ -476,7 +476,7 @@
         e.preventDefault();
         $.ajax({
             type: "post",
-            url: "/book/checkbox_send",
+            url: "/book/_checkbox_send",
             dataType: "json",
             headers: {
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'

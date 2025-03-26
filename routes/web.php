@@ -40,6 +40,7 @@ Route::middleware('auth.admin')->group(function () {
     Route::post('/book/send_to_admin', [BookController::class, 'send_to_admin'])->name('book.send_to_admin');
     Route::post('/book/admin_stamp', [BookController::class, 'admin_stamp'])->name('book.admin_stamp');
     Route::post('/book/checkbox_send', [BookController::class, 'checkbox_send'])->name('book.checkbox_send');
+    Route::post('/book/_checkbox_send', [BookController::class, '_checkbox_send'])->name('book._checkbox_send');
     Route::post('/book/send_to_save', [BookController::class, 'send_to_save'])->name('book.send_to_save');
     Route::post('/book/confirm_signature', [BookController::class, 'confirm_signature'])->name('book.confirm_signature');
     Route::post('/book/signature_stamp', [BookController::class, 'signature_stamp'])->name('book.signature_stamp');
