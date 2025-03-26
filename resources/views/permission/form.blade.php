@@ -68,7 +68,7 @@
                         </h6>
                     </div>
                     <div class="row d-flex align-items-center">
-                        <label for="inputPassword" class="col-sm-3 col-form-label text-right">ลงรับ :</label>
+                        <label for="inputPassword" class="col-sm-3 col-form-label text-right">ลงรับ/เกษียณหนังสือ :</label>
                         <div class="col-sm-9">
                             <input class="form-check-input" type="checkbox" value="3" id="checkbox3" name="checkbox[]"
                                 <?php if (isset($info)) {
