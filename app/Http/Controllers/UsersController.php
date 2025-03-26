@@ -179,6 +179,7 @@ class UsersController extends Controller
     public function insertPermission(Request $request)
     {
         $input = $request->input();
+        dd($input);
         $permission = new Users_permission();
         $permission->permission_id = $input['select_permission'];
         $permission->position_id = ($input['select_position']) ? $input['select_position'] : '';
