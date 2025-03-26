@@ -278,7 +278,7 @@
 
     let markEventListener = null;
 
-    function openPdf(url, id, status) {
+    function openPdf(url, id, status, type, is_number, number, position_id) {
         $('.btn-default').hide();
         document.getElementById('manager-sinature').disabled = false;
         document.getElementById('save-stamp').disabled = true;
@@ -286,6 +286,7 @@
         $('#div-canvas').html('<div style="position: relative;"><canvas id="pdf-render"></canvas><canvas id="mark-layer" style="position: absolute; left: 0; top: 0;"></canvas></div>');
         pdf(url);
         $('#id').val(id);
+        $('#position_id').val(position_id);
         $('#positionX').val('');
         $('#positionY').val('');
         $('#txt_label').text('');
@@ -422,6 +423,7 @@
     $('#manager-save').click(function(e) {
         e.preventDefault();
         var id = $('#id').val();
+        var position_id = $('#position_id').val();
         var positionX = $('#positionX').val();
         var positionY = $('#positionY').val();
         var pages = $('#page-select').find(":selected").val();
@@ -448,7 +450,8 @@
                             pages: pages,
                             status: 11,
                             text: text,
-                            checkedValues: checkedValues
+                            checkedValues: checkedValues,
+                            position_id: position_id
                         },
                         dataType: "json",
                         headers: {
@@ -538,6 +541,7 @@
         e.preventDefault();
         var id = $('#id').val();
         var users_id = $('#users_id').val();
+        var position_id = $('#position_id').val();
         Swal.fire({
             title: "ยืนยันการแทงเรื่อง",
             showCancelButton: true,
@@ -552,7 +556,8 @@
                     data: {
                         id: id,
                         users_id: users_id,
-                        status: 12
+                        status: 12,
+                        position_id: position_id
                     },
                     dataType: "json",
                     headers: {

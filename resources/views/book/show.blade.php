@@ -105,7 +105,7 @@
                 $color = 'warning';
             }
             if ($rec->file) {
-                $action = "openPdf('" . $rec->url . "','" . $rec->id . "','" . $rec->status . "','" . $rec->type . "','" . $rec->is_number_stamp . "','" . $rec->inputBookregistNumber . "')";
+                $action = "openPdf('" . $rec->url . "','" . $rec->id . "','" . $rec->status . "','" . $rec->type . "','" . $rec->is_number_stamp . "','" . $rec->inputBookregistNumber . "','" . $rec->position_id . "')";
             } else {
                 $action = "uploadPdf('" . $rec->id . "')";
             }
@@ -157,6 +157,7 @@
         </div>
     </div>
     <input type="hidden" name="id" id="id">
+    <input type="hidden" name="position_id" id="position_id">
     <input type="hidden" name="number_id" id="number_id">
     <input type="hidden" name="users_id" id="users_id">
     <input type="hidden" name="positionX" id="positionX">

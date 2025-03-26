@@ -181,7 +181,7 @@ class BookController extends Controller
             if ($this->position_id != null) {
                 $book = $book->where('log_status_books.position_id', $this->position_id);
             }
-            $book = $book->select('books.*', 'log_status_books.status', 'log_status_books.file')
+            $book = $book->select('books.*', 'log_status_books.status', 'log_status_books.file', 'log_status_books.position_id')
                 ->leftJoin('log_status_books', 'books.id', '=', 'log_status_books.book_id')
                 ->whereIn('log_status_books.status', $this->permission)
                 ->orderBy('inputBookregistNumber', 'asc')
@@ -624,11 +624,12 @@ class BookController extends Controller
         $data['message'] = '';
         $id = $request->input('id');
         $users_id = $request->input('users_id');
+        $position_id = $request->input('position_id');
         $status = $request->input('status');
         $query = new Book;
         $book = $query->where('id', $id)->first();
         if (!empty($book)) {
-            $update = Log_status_book::where('position_id', $this->position_id)->where('book_id', $id)->first();
+            $update = Log_status_book::where('position_id', $position_id)->where('book_id', $id)->first();
             $getForward = User::find($users_id);
             $sql = Permission::where('id', $getForward->permission_id)->first();
             $update->status = $status;
@@ -768,7 +769,7 @@ class BookController extends Controller
         $input = $request->input();
         $book = Book::where('id', $input['id'])->first();
         if (!empty($book)) {
-            $update = Log_status_book::where('position_id', $this->position_id)->where('book_id', $input['id'])->first();
+            $update = Log_status_book::where('position_id', $input['position_id'])->where('book_id', $input['id'])->first();
             $update->status = $input['status'];
             $update->updated_at = date('Y-m-d H:i:s');
             if ($update->save()) {

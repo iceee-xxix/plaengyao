@@ -36,7 +36,9 @@
                         </h6>
                     </div>
                     <?php
-                    $can_status = explode(',', $info->can_status);
+                    if(isset($info)){
+                        $can_status = explode(',', $info->can_status);
+                    }
                     ?>
                     <div class="row d-flex align-items-center">
                         <label for="inputPassword" class="col-sm-3 col-form-label text-right">รับหนังสือ :</label>
@@ -164,4 +166,4 @@
 </div>
 @endsection
 
-@extends('users.js.create')
+@extends('users.js.form')
