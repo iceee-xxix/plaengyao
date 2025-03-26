@@ -41,6 +41,11 @@
                                                                 }
                                                             } ?>>{{$rs->permission_name}}</option>
                                 @endforeach
+                                <option value="6" <?php if (isset($info)) {
+                                                        if ($info->parent_id == 6) {
+                                                            echo 'selected';
+                                                        }
+                                                    } ?>>ปลัดองค์การบริหารส่วนตำบลแปลงยาว</option>
                             </select>
                         </div>
                     </div>
