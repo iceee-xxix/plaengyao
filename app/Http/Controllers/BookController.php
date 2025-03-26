@@ -636,7 +636,7 @@ class BookController extends Controller
             } else {
                 $getForward = User::find($users_id);
                 $sql = Permission::where('id', $getForward->permission_id)->first();
-                $update->parentUsers = $users_id;
+                $update->parentUsers = isset($users_id) ? $users_id : '';
             }
             $update->status = $status;
             $update->updated_at = date('Y-m-d H:i:s');
