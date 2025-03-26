@@ -179,10 +179,11 @@ class UsersController extends Controller
     public function insertPermission(Request $request)
     {
         $input = $request->input();
-        dd($input);
         $permission = new Users_permission();
         $permission->permission_id = $input['select_permission'];
-        $permission->position_id = ($input['select_position']) ? $input['select_position'] : '';
+        if(isset($input['select_position'])){
+            $permission->position_id = $input['select_position'];
+        }
         $permission->users_id = $input['id'];
         $permission->created_by = auth()->user()->id;
         $permission->created_at = date('Y-m-d H:i:s');
