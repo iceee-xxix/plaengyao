@@ -9,6 +9,7 @@ use App\Models\Log_status_book;
 use App\Models\Permission;
 use App\Models\Position;
 use App\Models\User;
+use App\Models\Users_permission;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
@@ -177,7 +178,7 @@ class BookController extends Controller
         if ($this->permission_id == '1' || $this->permission_id == '2') {
             $book = $book->select('books.*')->whereIn('status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->limit(5)->get();
         } else {
-            if($this->position_id != null){
+            if ($this->position_id != null) {
                 $book = $book->where('log_status_books.position_id', $this->position_id);
             }
             $book = $book->select('books.*', 'log_status_books.status', 'log_status_books.file')
@@ -579,11 +580,17 @@ class BookController extends Controller
     public function checkbox_send()
     {
         $txt = '<div class="row d-flex align-items-start">';
-        $get_users = User::select('users.*', 'permissions.permission_name')
-            ->where('permission_id', $this->permission_data->parent_id)
-            ->join('permissions', 'permissions.id', '=', 'users.permission_id')
-            ->where('position_id', $this->position_id)
-            ->get();
+        // $get_users = User::select('users.*', 'permissions.permission_name')
+        //     ->where('permission_id', $this->permission_data->parent_id)
+        //     ->join('permissions', 'permissions.id', '=', 'users.permission_id')
+        //     ->where('position_id', $this->position_id)
+        //     ->get();
+        $get_users = Users_permission::select('users.*', 'permissions.permission_name')
+            ->leftJoin('users', 'users_permissions.users_id', '=', 'users.id')
+            ->leftJoin('permissions', 'permissions.id', '=', 'users_permissions.permission_id')
+            ->where('users_permissions.position_id', $this->position_id)
+            ->where('users_permissions.permission_id', $this->permission_data->parent_id)
+            ->toSql();
         $count = User::where('permission_id', $this->permission_data->parent_id)->where('position_id', $this->position_id)->count();
         if (!empty($get_users)) {
             for ($i = 0; $i < $count; $i++) {
