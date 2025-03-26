@@ -4,6 +4,7 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\BooksenderController;
 use App\Http\Controllers\EmailController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\PDF;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TrackController;
@@ -38,7 +39,9 @@ Route::middleware('auth.admin')->group(function () {
     Route::post('/book/dataList', [BookController::class, 'dataList'])->name('book.dataList');
     Route::post('/book/save_stamp', [BookController::class, 'save_stamp'])->name('book.save_stamp');
     Route::post('/book/send_to_admin', [BookController::class, 'send_to_admin'])->name('book.send_to_admin');
+    Route::post('/book/send_to_adminParent', [BookController::class, 'send_to_adminParent'])->name('book.send_to_adminParent');
     Route::post('/book/admin_stamp', [BookController::class, 'admin_stamp'])->name('book.admin_stamp');
+    Route::post('/book/admin_stampParent', [BookController::class, 'admin_stampParent'])->name('book.admin_stampParent');
     Route::post('/book/checkbox_send', [BookController::class, 'checkbox_send'])->name('book.checkbox_send');
     Route::post('/book/_checkbox_send', [BookController::class, '_checkbox_send'])->name('book._checkbox_send');
     Route::post('/book/send_to_save', [BookController::class, 'send_to_save'])->name('book.send_to_save');
@@ -72,12 +75,15 @@ Route::middleware('auth.admin')->group(function () {
     Route::post('/bookSender/save', [BooksenderController::class, 'save'])->name('bookSender.save');
 
     Route::get('/permission', [PermissionController::class, 'index'])->name('permission.index');
-    Route::get('/permission/create', [PermissionController::class, 'create'])->name('permission.create');
+    Route::get('/permission/create/{id}', [PermissionController::class, 'create'])->name('permission.create');
+    Route::get('/permission/detail/{id}', [PermissionController::class, 'detail'])->name('permission.detail');
     Route::get('/permission/edit/{id}', [PermissionController::class, 'edit'])->name('permission.edit');
     Route::get('/permission/listData', [PermissionController::class, 'listData'])->name('permission.listData');
+    Route::get('/permission/listDataPermission', [PermissionController::class, 'listDataPermission'])->name('permission.listDataPermission');
     Route::post('/permission/save', [PermissionController::class, 'save'])->name('permission.save');
 });
 
 Route::get('/email', [EmailController::class, 'index'])->name('email.index');
+Route::get('/pdf', [PDF::class, 'index'])->name('pdf.index');
 
 require __DIR__ . '/auth.php';

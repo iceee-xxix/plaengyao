@@ -17,7 +17,7 @@
         <form id="modalForm" action="{{route('permission.save')}}" id="formSubmit" method="post" enctype="multipart/form-data">
             @csrf
             <div class="card-header">
-                เพิ่มตำแหน่งและหน่วยงาน
+                เพิ่มตำแหน่งในหน่วยงาน
             </div>
             <div class="card-body">
                 <div class="modal-body">
@@ -29,6 +29,17 @@
                                                                                                     } ?>">
                         </div>
                     </div>
+                    <div class="mb-4 row">
+                        <label for="selectParent" class="col-sm-2 col-form-label">ภายใต้ :</label>
+                        <div class="col-sm-10">
+                            <select class="form-control" name="selectParent" id="selectParent" require>
+                                <option value="">กรุณาเลือก</option>
+                                @foreach($item as $rs)
+                                <option value="{{$rs->id}}">{{$rs->permission_name}}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
                     <hr>
                     <div class="mt-4 row">
                         <h6>
@@ -36,7 +47,7 @@
                         </h6>
                     </div>
                     <?php
-                    if(isset($info)){
+                    if (isset($info)) {
                         $can_status = explode(',', $info->can_status);
                     }
                     ?>
@@ -158,6 +169,11 @@
             <input type="hidden" name="id" id="id" value="<?php if (isset($info)) {
                                                                 echo $info->id;
                                                             } ?>">
+            <input type="hidden" name="position_id" id="position_id" value="<?php if (isset($info)) {
+                                                                                echo $info->position_id;
+                                                                            } else {
+                                                                                echo $id;
+                                                                            } ?>">
             <div class="card-footer d-flex justify-content-end">
                 <button type="submit" class="btn btn-outline-primary">บันทึก</button>
             </div>

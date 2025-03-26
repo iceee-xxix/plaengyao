@@ -43,10 +43,32 @@ class PermissionController extends Controller
         return view('permission.index', $data);
     }
 
+    public function detail($id)
+    {
+        if ($this->permission_id != 9) {
+            return redirect('/book/show');
+        }
+        $data['permission_data'] = $this->permission_data;
+        $data['function_key'] = 'permission';
+        $data['id'] = $id;
+        return view('permission.detail', $data);
+    }
+
 
     public function listData()
     {
-        $info = Permission::orderBy('id', 'asc')->get();
+        $info = Position::orderBy('id', 'asc')->get();
+        foreach ($info as $key => $value) {
+            $value->action = '<a href="' . url('/permission/detail/' . $value->id) . '" class="btn btn-sm btn-outline-primary"><i class="fa fa-edit"></i></a>';
+        }
+        $data['data'] = $info;
+        return response()->json($data);
+    }
+
+    public function listDataPermission(Request $request)
+    {
+        $id = $request->input('id');
+        $info = Permission::where('position_id', $id)->orderBy('id', 'asc')->get();
         foreach ($info as $key => $value) {
             $value->action = '<a href="' . url('/permission/edit/' . $value->id) . '" class="btn btn-sm btn-outline-primary"><i class="fa fa-edit"></i></a>';
         }
@@ -54,13 +76,15 @@ class PermissionController extends Controller
         return response()->json($data);
     }
 
-    public function create()
+    public function create($id)
     {
         if ($this->permission_id != 9) {
             return redirect('/book/show');
         }
         $data['permission_data'] = $this->permission_data;
         $data['function_key'] = 'permission';
+        $data['id'] = $id;
+        $data['item'] = Permission::where('position_id', $id)->get();
         return view('permission.form', $data);
     }
 
@@ -72,6 +96,7 @@ class PermissionController extends Controller
         $data['permission_data'] = $this->permission_data;
         $data['function_key'] = 'permission';
         $data['info'] = Permission::find($id);
+        $data['item'] = Permission::where('position_id', $data['info']->position_id)->get();
         return view('permission.form', $data);
     }
 
@@ -83,10 +108,14 @@ class PermissionController extends Controller
             $query = Permission::find($input['id']);
             $query->permission_name = $input['name'];
             $query->can_status = $value;
+            $query->position_id = $input['position_id'];
             $query->updated_by = auth()->user()->id;
             $query->updated_at = date('Y-m-d H:i:s');
+            if ($input['selectParent']) {
+                $query->parent_id = $input['selectParent'];
+            }
             if ($query->save()) {
-                return redirect()->route('permission.index')->with('success', 'บันทึกข้อมูลสำเร็จ');
+                return redirect('/permission/detail/' . $input['position_id'])->with('success', 'บันทึกข้อมูลสำเร็จ');
             } else {
                 return redirect('/permission')->with('error', 'แก้ไขข้อมูลไม่สำเร็จ');
             }
@@ -98,8 +127,12 @@ class PermissionController extends Controller
             $query->created_at = date('Y-m-d H:i:s');
             $query->updated_by = auth()->user()->id;
             $query->updated_at = date('Y-m-d H:i:s');
+            $query->position_id = $input['position_id'];
+            if ($input['selectParent']) {
+                $query->parent_id = $input['selectParent'];
+            }
             if ($query->save()) {
-                return redirect()->route('permission.index')->with('success', 'บันทึกข้อมูลสำเร็จ');
+                return redirect('/permission/detail/' . $input['position_id'])->with('success', 'บันทึกข้อมูลสำเร็จ');
             } else {
                 return redirect('/permission')->with('error', 'แก้ไขข้อมูลไม่สำเร็จ');
             }

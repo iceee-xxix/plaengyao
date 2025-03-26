@@ -12,14 +12,15 @@
     <div class="card w-50 mt-5">
         <div class="card-header" style="padding:2%">
             <div class="row">
-                <div class="col-6">หน่วยงาน</div>
+                <div class="col-6">สิทธิการใช้งาน</div>
+                <div class="col-6 d-flex justify-content-end"><a href="/permission/create/{{$id}}" class="btn btn-sm btn-outline-success">เพิ่ม</a></div>
             </div>
         </div>
         <div class="card-body">
             <table id="example" class="display">
                 <thead>
                     <tr>
-                        <th width="80%">หน่วยงาน</th>
+                        <th width="80%">ตำแหน่ง</th>
                         <th>แก้ไข</th>
                     </tr>
                 </thead>
@@ -30,4 +31,4 @@
 
 @endsection
 
-@extends('permission.js.index')
+@extends('permission.js.detail')
