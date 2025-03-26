@@ -35,7 +35,11 @@
                             <select class="form-control" name="selectParent" id="selectParent" require>
                                 <option value="">กรุณาเลือก</option>
                                 @foreach($item as $rs)
-                                <option value="{{$rs->id}}">{{$rs->permission_name}}</option>
+                                <option value="{{$rs->id}}" <?php if (isset($info)) {
+                                                                if ($info->parent_id == $rs->id) {
+                                                                    echo 'checked';
+                                                                }
+                                                            } ?>>{{$rs->permission_name}}</option>
                                 @endforeach
                             </select>
                         </div>
