@@ -37,7 +37,7 @@
                                 @foreach($item as $rs)
                                 <option value="{{$rs->id}}" <?php if (isset($info)) {
                                                                 if ($info->parent_id == $rs->id) {
-                                                                    echo 'checked';
+                                                                    echo 'selected';
                                                                 }
                                                             } ?>>{{$rs->permission_name}}</option>
                                 @endforeach
