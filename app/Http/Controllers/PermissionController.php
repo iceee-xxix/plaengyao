@@ -122,7 +122,7 @@ class PermissionController extends Controller
                     $value .= '1,2';
                     break;
                 case '3':
-                    $value .= '3';
+                    $value .= '3,3.5';
                     break;
                 case '4':
                     $value .= '4,5';

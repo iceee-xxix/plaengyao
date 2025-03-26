@@ -629,11 +629,12 @@ class BookController extends Controller
         $query = new Book;
         $book = $query->where('id', $id)->first();
         if (!empty($book)) {
-            $update = Log_status_book::where('position_id', $position_id)->where('book_id', $id)->first();
             if ($status == 14) {
+                $update = Log_status_book::where('position_id', $position_id)->where('book_id', $id)->first();
                 $getForward = User::where('permission_id', 4)->where('position_id', $position_id)->first();
                 $update->parentUsers = $getForward->id;
             } else {
+                $update = Log_status_book::where('position_id', auth()->user()->position_id)->where('book_id', $id)->first();
                 $getForward = User::find($users_id);
                 $sql = Permission::where('id', $getForward->permission_id)->first();
                 $update->parentUsers = $users_id;
