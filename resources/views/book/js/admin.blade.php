@@ -1,5 +1,5 @@
 @section('script')
-<?php $position = [1 => 'สำนักงานปลัด', 2 => 'งานกิจการสภา', 3 => 'กองคลัง', 4 => 'กองช่าง', 5 => 'กองการศึกษา ศาสนาและวัฒนธรรม', 6 => 'ฝ่ายศูนย์รับเรื่องร้องเรียน-ร้องทุกข์', 7 => 'ฝ่ายเลือกตั้ง', 8 => 'ฝ่ายสปสช.', 9 => 'ศูนย์ข้อมูลข่าวสาร']; ?>
+<?php $position = $itemParent; ?>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
@@ -9,6 +9,7 @@
     var selectPageTable = document.getElementById('page-select-card');
     var pageTotal = '{{$totalPages}}';
     var pageNumTalbe = 1;
+    var permission = '{{$permission}}';
 
     var imgData = null;
 
@@ -233,7 +234,9 @@
                                         checkbox_text = '{{convertDateToThai(date("Y-m-d"))}}';
                                         break;
                                 }
-                                drawTextHeaderSignature('15px Sarabun', startX, (startY + plus_y + (20 * lineBreakCount)) + (20 * i), checkbox_text);
+                                if (element != 4) {
+                                    drawTextHeaderSignature('15px Sarabun', startX, (startY + plus_y + (20 * lineBreakCount)) + (20 * i), checkbox_text);
+                                }
                                 i++;
                             });
                         };
@@ -339,7 +342,7 @@
 
     let markEventListener = null;
 
-    function openPdf(url, id, status) {
+    function openPdf(url, id, status, type, is_check = '', number_id, position_id) {
         $('.btn-default').hide();
         document.getElementById('add-stamp').disabled = false;
         document.getElementById('save-stamp').disabled = true;
@@ -357,14 +360,23 @@
             $('#save-stamp').show();
         }
         if (status == 3.5) {
-            document.getElementById('send-signature').disabled = false;
-            $('#send-signature').show();
-            $('#signature-save').show();
+            if (position_id != 1) {
+                document.getElementById('send-signature').disabled = false;
+                $('#send-signature').show();
+                $('#signature-save').show();
+            } else {
+                $('#sendTo').show();
+            }
         }
         if (status == 4) {
-            document.getElementById('send-signature').disabled = false;
-            $('#send-signature').show();
-            $('#signature-save').show();
+            if (permission != '3,3.5,4,5') {
+                document.getElementById('send-signature').disabled = false;
+                $('#send-signature').show();
+                $('#signature-save').show();
+            } else {
+                $('#send-to').show();
+                $('#send-save').show();
+            }
         }
         if (status == 5) {
             $('#send-to').show();
@@ -538,6 +550,65 @@
         }
     });
 
+    $('#sendTo').click(function(e) {
+        e.preventDefault();
+        Swal.fire({
+            title: 'เลือกหน่วยงานที่ต้องการแทงเรื่อง',
+            html: `
+                <select id="select_position_id" name="states[]" multiple="multiple" class="swal2-input" style="width: 80%;">
+                    @foreach($position as $key => $rec)
+                    <option value="{{$key}}">{{$rec}}</option>
+                    @endforeach
+                </select>
+            `,
+            didOpen: () => {
+                $('#select_position_id').select2({
+                    dropdownParent: $('.swal2-container')
+                });
+            },
+            allowOutsideClick: false,
+            focusConfirm: true,
+            confirmButtonText: 'ตกลง',
+            showCancelButton: true,
+            cancelButtonText: `ยกเลิก`,
+            preConfirm: () => {
+                // ดึงค่าที่เลือกจาก Select2
+                const selectedValue = $('#select_position_id').val();
+                if (!selectedValue) {
+                    Swal.showValidationMessage('ท่านยังไม่ได้เลือกหน่วยงาน');
+                }
+                return selectedValue;
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                var id = $('#id').val();
+                $.ajax({
+                    type: "post",
+                    url: "/book/send_to_adminParent",
+                    data: {
+                        id: id,
+                        position_id: result.value
+                    },
+                    dataType: "json",
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        if (response.status) {
+                            if (response.status) {
+                                Swal.fire("", "แทงเรื่องเรียบร้อยแล้ว", "success");
+                                setTimeout(() => {
+                                    location.reload();
+                                }, 1000);
+                            } else {
+                                Swal.fire("", "แทงเรื่องไม่สำเร็จ", "error");
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    });
     $('#send-to').click(function(e) {
         e.preventDefault();
         $.ajax({

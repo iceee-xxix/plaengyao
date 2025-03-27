@@ -40,9 +40,9 @@ class BooksenderController extends Controller
 
     public function index()
     {
-        if ($this->permission_id != 1 && $this->permission_id != 9) {
-            return redirect('/book/show');
-        }
+        // if ($this->permission_id != 1 && $this->permission_id != 9) {
+        //     return redirect('/book/show');
+        // }
         $data['permission_data'] = $this->permission_data;
         $data['function_key'] = 'bookSender';
         $data['book_type'] = Book_type::where('type', 2)->get();

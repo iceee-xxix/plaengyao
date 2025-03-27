@@ -259,7 +259,6 @@
                                         checkbox_text = '{{convertDateToThai(date("Y-m-d"))}}';
                                         break;
                                 }
-                                console.log(checkbox_text);
                                 drawTextHeaderSignature('15px Sarabun', startX, (startY + 160 + (20 * lineBreakCount)) + (20 * i), checkbox_text);
                                 i++;
                             });

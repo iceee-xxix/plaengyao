@@ -80,8 +80,10 @@
                         <button class="btn btn-outline-dark btn-sm hidden btn-default" style="margin-right: 5px;font-size: 15px;" id="number-stamp" title="ประทับเลขที่รับ">ประทับเลขที่รับ</button>
                         <button class="btn btn-outline-dark btn-sm hidden btn-default" style="margin-right: 5px;font-size: 15px;" id="number-save" title="บันทึก" disabled><i class="fa fa-floppy-o"></i></button>
                         <button class="btn btn-outline-dark btn-sm hidden btn-default" style="margin-right: 5px;font-size: 15px;" id="save-stamp" title="บันทึก" disabled><i class="fa fa-floppy-o"></i></button>
+                        <button class="btn btn-outline-dark btn-sm hidden btn-default" style="margin-right: 5px;font-size: 15px;" id="save-stamp-2" title="บันทึก" disabled><i class="fa fa-floppy-o"></i></button>
                         <button class="btn btn-outline-dark btn-sm hidden btn-default" style="margin-right: 5px;font-size: 15px;" id="save-pdf" title="บันทึก" disabled><i class="fa fa-floppy-o"></i></button>
                         <button class="btn btn-outline-dark btn-sm hidden btn-default" style="margin-right: 5px;font-size: 15px;" id="send-to" title="แทงเรื่อง"><i class="fa fa-send-o"></i></button>
+                        <button class="btn btn-outline-dark btn-sm hidden btn-default" style="margin-right: 5px;font-size: 15px;" id="sendTo" title="แทงเรื่อง"><i class="fa fa-send-o"></i></button>
                         <button class="btn btn-outline-dark btn-sm hidden btn-default" style="margin-right: 5px;font-size: 15px;" id="send-signature" title="เกษียณหนังสือ" disabled><i class="fa fa-edit"></i></button>
                         <button class="btn btn-outline-dark btn-sm hidden btn-default" style="margin-right: 5px;font-size: 15px;" id="signature-save" title="บันทึกข้อมูล" disabled><i class="fa fa-floppy-o"></i></button>
                         <button class="btn btn-outline-dark btn-sm hidden btn-default" style="margin-right: 5px;font-size: 15px;" id="manager-sinature" title="เซ็นหนังสือ" disabled><i class="fa fa-edit"></i></i></button>

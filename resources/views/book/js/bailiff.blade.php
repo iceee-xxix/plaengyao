@@ -556,7 +556,7 @@
                     data: {
                         id: id,
                         users_id: users_id,
-                        status: 10,
+                        status: 12,
                         position_id: position_id
                     },
                     dataType: "json",

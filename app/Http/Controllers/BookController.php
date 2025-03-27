@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Book;
+use App\Models\Log_active_book;
 use App\Models\Log_status_book;
 use App\Models\Permission;
 use App\Models\Position;
@@ -25,6 +26,7 @@ class BookController extends Controller
     public $permission;
     public $permission_data;
     public $permission_id;
+    public $position_data;
     public $position_id;
     public $position_name;
     public $signature;
@@ -37,6 +39,7 @@ class BookController extends Controller
             $this->permission_id = $this->users->permission_id;
             $this->permission_data = $sql;
             $sql = Position::where('id', $this->users->position_id)->first();
+            $this->position_data = $sql;
             $this->position_id = $this->users->position_id;
             $this->position_name = ($sql != null) ? $sql->position_name : '';
             $this->signature = url("/storage/users/" . auth()->user()->signature);
@@ -153,21 +156,22 @@ class BookController extends Controller
 
     public function show()
     {
-        if ($this->permission_id == '3' || $this->permission_id == '4') {
+        if (in_array('3', $this->permission)) {
             $data['extends'] = 'book.js.admin';
-        } else if ($this->permission_id == '5') {
+        } else if (in_array('6', $this->permission)) {
             $data['extends'] = 'book.js.manager';
-        } else if ($this->permission_id == '6') {
+        } else if (in_array('8', $this->permission)) {
             $data['extends'] = 'book.js.bailiff';
-        } else if ($this->permission_id == '7') {
+        } else if (in_array('10', $this->permission)) {
             $data['extends'] = 'book.js.mayor_1';
-        } else if ($this->permission_id == '8') {
+        } else if (in_array('12', $this->permission)) {
             $data['extends'] = 'book.js.mayor_2';
         } else {
             $data['extends'] = 'book.js.show';
         }
         $data['function_key'] = __FUNCTION__;
         $data['permission_id'] = $this->permission_id;
+        $data['permission'] = implode(',', $this->permission);
         $data['position_id'] = $this->position_id;
         $data['position_name'] = $this->position_name;
         $data['permission_data'] = $this->permission_data;
@@ -196,6 +200,17 @@ class BookController extends Controller
         $book_count = Book::count();
         $data['totalPages'] = (int)ceil($book_count / 5);
         $data['book'] = $book;
+        $item = Position::where('parent_id')->get();
+        $data['itemParent'] = [];
+        if (auth()->user()->position_id) {
+            $item_parent_id = Position::where('parent_id', auth()->user()->position_id)->get();
+            foreach ($item_parent_id as $rs) {
+                $data['itemParent'][$rs->id] = $rs->position_name;
+            }
+        }
+        foreach ($item as $rs) {
+            $data['item'][$rs->id] = $rs->position_name;
+        }
         return view('book.show', $data);
     }
 
@@ -476,6 +491,59 @@ class BookController extends Controller
         return response()->json($data);
     }
 
+    public function send_to_adminParent(Request $request)
+    {
+        $data['status'] = false;
+        $data['message'] = '';
+        $id = $request->input('id');
+        $position_id = $request->input('position_id');
+        $query = new Book;
+        $book = $query->where('id', $id)->first();
+        if (!empty($book)) {
+            $update = Book::find($id);
+            $update->status = 4;
+            $update->updated_by = $this->users->id;
+            $update->updated_at = date('Y-m-d H:i:s');
+            foreach ($position_id as $value) {
+                $filePath = storage_path('app/public/' . auth()->user()->position_id . '/' . $book->file);
+                $insert = new Log_status_book();
+                $destinationDirectory = storage_path('app/public/' . $value . '/' . $book->file);
+                if (!File::exists(storage_path('app/public/' . $value . '/uploads'))) {
+                    File::makeDirectory(storage_path('app/public/' . $value . '/uploads'), 0777, true); // สร้างโฟลเดอร์ใหม่
+                }
+                if (File::exists($filePath)) {
+                    File::copy($filePath, $destinationDirectory);
+                }
+                $insert->book_id = $id;
+                $insert->status = 3;
+                $insert->datetime = date('Y-m-d H:i:s');
+                $insert->file = $value . '/' . $book->file;
+                $insert->position_id = $value;
+                if ($insert->save()) {
+                    $sql = Position::where('id', $value)->first();
+                    log_active([
+                        'users_id' => auth()->user()->id,
+                        'status' => 4,
+                        'datetime' => date('Y-m-d H:i:s'),
+                        'detail' => 'แทงเรื่องไป ' . $sql->position_name,
+                        'book_id' => $id,
+                        'position_id' => $value
+                    ]);
+                }
+            }
+            if (auth()->user()->position_id == 1) {
+                $log = Log_status_book::where('status', 3.5)->where('position_id', auth()->user()->position_id)->where('book_id', $book->id)->first();
+                $log->status = 4;
+                $log->save();
+            }
+            if ($update->save()) {
+                $data['status'] = true;
+                $data['message'] = 'แทงเรื่องเรียบร้อยแล้ว';
+            }
+        }
+        return response()->json($data);
+    }
+
     public function admin_stamp(Request $request)
     {
         $data['status'] = false;
@@ -581,12 +649,12 @@ class BookController extends Controller
     {
         $txt = '<div class="row d-flex align-items-start">';
         $get_users = Users_permission::select('users.*', 'permissions.permission_name')
-            ->leftJoin('users', 'users_permissions.users_id', '=', 'users.id')
-            ->leftJoin('permissions', 'permissions.id', '=', 'users_permissions.permission_id')
+            ->join('users', 'users_permissions.users_id', '=', 'users.id')
+            ->join('permissions', 'users_permissions.permission_id', '=', 'permissions.id')
             ->where('users_permissions.position_id', $this->position_id)
             ->where('users_permissions.permission_id', $this->permission_data->parent_id)
             ->get();
-        $count = User::where('permission_id', $this->permission_data->parent_id)->where('position_id', $this->position_id)->count();
+        $count = Users_permission::where('permission_id', $this->permission_data->parent_id)->where('position_id', $this->position_id)->count();
         if (!empty($get_users)) {
             for ($i = 0; $i < $count; $i++) {
                 $txt .= '<div class="col-1 mb-3"></div><div class="col-11 mb-2">';
@@ -601,11 +669,12 @@ class BookController extends Controller
     public function _checkbox_send()
     {
         $txt = '<div class="row d-flex align-items-start">';
-        $get_users = User::select('users.*', 'permissions.permission_name')
-            ->join('permissions', 'permissions.id', '=', 'users.permission_id')
-            ->where('permission_id', $this->permission_data->parent_id)
+        $get_users = Users_permission::select('users.*', 'permissions.permission_name')
+            ->join('users', 'users_permissions.users_id', '=', 'users.id')
+            ->join('permissions', 'users_permissions.permission_id', '=', 'permissions.id')
+            ->where('users_permissions.permission_id', $this->permission_data->parent_id)
             ->get();
-        $count = User::where('permission_id', $this->permission_data->parent_id)->count();
+        $count = Users_permission::where('permission_id', $this->permission_data->parent_id)->count();
         if (!empty($get_users)) {
             for ($i = 0; $i < $count; $i++) {
                 $txt .= '<div class="col-1 mb-3"></div><div class="col-11 mb-2">';
@@ -630,11 +699,20 @@ class BookController extends Controller
         $book = $query->where('id', $id)->first();
         if (!empty($book)) {
             if ($status == 14) {
-                $update = Log_status_book::where('position_id', $position_id)->where('book_id', $id)->first();
-                $getForward = User::where('permission_id', 4)->where('position_id', $position_id)->first();
-                $update->parentUsers = $getForward->id;
+                $update = Log_status_book::where('position_id', $position_id)
+                    ->where('book_id', $id)
+                    ->first();
+                $getForward = Permission::where('can_status', 'like', "3,3.5%")
+                    ->leftJoin('users_permissions', 'users_permissions.permission_id', '=', 'permissions.id')
+                    ->where('permissions.position_id', $position_id)
+                    ->first();
+                $update->parentUsers = $getForward->users_id;
             } else {
-                $update = Log_status_book::where('position_id', auth()->user()->position_id)->where('book_id', $id)->first();
+                if(auth()->user()->position_id){
+                    $update = Log_status_book::where('position_id', auth()->user()->position_id)->where('book_id', $id)->first();
+                }else{
+                    $update = Log_status_book::where('position_id', $position_id)->where('book_id', $id)->first();
+                }
                 $getForward = User::find($users_id);
                 $sql = Permission::where('id', $getForward->permission_id)->first();
                 $update->parentUsers = $users_id;
@@ -791,8 +869,13 @@ class BookController extends Controller
         $data['message'] = '';
         $input = $request->input();
         $book = Book::where('id', $input['id'])->first();
+        if (isset($input['position_id'])) {
+            $position_id = $input['position_id'];
+        } else {
+            $position_id = auth()->user()->position_id;
+        }
         if (!empty($book)) {
-            $update = Log_status_book::where('position_id', $input['position_id'])->where('book_id', $input['id'])->first();
+            $update = Log_status_book::where('position_id', $position_id)->where('book_id', $input['id'])->first();
             $update->status = $input['status'];
             $update->updated_at = date('Y-m-d H:i:s');
             if ($update->save()) {
