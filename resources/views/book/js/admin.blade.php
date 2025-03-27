@@ -369,7 +369,7 @@
             }
         }
         if (status == 4) {
-            if (permission != '3,3.5,4,5,14') {
+            if (permission != '3,3.5,4,5,14' || permission != '3,3.5,4,5') {
                 document.getElementById('send-signature').disabled = false;
                 $('#send-signature').show();
                 $('#signature-save').show();
