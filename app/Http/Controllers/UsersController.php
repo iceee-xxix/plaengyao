@@ -181,7 +181,7 @@ class UsersController extends Controller
         $input = $request->input();
         $permission = new Users_permission();
         $permission->permission_id = $input['select_permission'];
-        if(isset($input['select_position'])){
+        if (isset($input['select_position'])) {
             $permission->position_id = $input['select_position'];
         }
         $permission->users_id = $input['id'];
@@ -210,6 +210,22 @@ class UsersController extends Controller
             } else {
                 return redirect('/users/edit/' . $input['id'])->with('success', 'แก้ไขข้อมูลสำเร็จ');
             }
+        }
+    }
+
+    public function sync()
+    {
+        $users = User::get();
+        foreach ($users as $rs) {
+            $role = Users_permission::select('users_permissions.*', 'permissions.permission_name', 'positions.position_name')
+                ->leftJoin('permissions', 'users_permissions.permission_id', '=', 'permissions.id')
+                ->leftJoin('positions', 'users_permissions.position_id', '=', 'positions.id')
+                ->where('users_permissions.users_id', $rs->id)
+                ->get();
+            $users = User::find($rs->id);
+            $users->permission_id = $role[0]->permission_id;
+            $users->position_id = $role[0]->position_id;
+            $users->save();
         }
     }
 }
