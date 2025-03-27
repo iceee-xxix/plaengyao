@@ -222,7 +222,7 @@ class UsersController extends Controller
                 ->leftJoin('positions', 'users_permissions.position_id', '=', 'positions.id')
                 ->where('users_permissions.users_id', $rs->id)
                 ->get();
-            if ($role) {
+            if (!empty($role)) {
                 $users = User::find($rs->id);
                 $users->permission_id = $role[0]->permission_id;
                 $users->position_id = $role[0]->position_id;
