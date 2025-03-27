@@ -49,7 +49,6 @@ class BookController extends Controller
 
     public function index()
     {
-        dd(auth()->user());
         if ($this->permission_id != 1 && $this->permission_id != 9) {
             return redirect('/book/show');
         }

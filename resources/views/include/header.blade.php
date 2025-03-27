@@ -3,7 +3,7 @@
     <div class="header-wrapper d-flex justify-content-between align-items-center">
         <div class="me-auto pc-mob-drp">
             <ul class="list-unstyled d-flex align-items-center mb-0">
-                @if(auth()->user()->permission_id == 1 || auth()->user()->permission_id == 9)
+                @if(auth()->user()->permission_id == 48 || auth()->user()->permission_id == 9)
                 <a href="{{url('book')}}" type="button" class="btn btn-outline-primary {{($function_key == 'index') ? 'active' : ''}}" style="margin-right:10px">นำเข้าหนังสือ</a>
                 @endif
                 <a href="{{url('book/show')}}" type="button" class="btn btn-outline-primary {{($function_key == 'show') ? 'active' : ''}}" style="margin-right:10px">รายการหนังสือ</a>
