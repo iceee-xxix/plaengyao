@@ -179,7 +179,7 @@ class BookController extends Controller
         $data['signature'] = $this->signature;
         Session::forget('keyword');
         $book = new Book;
-        if ($this->permission_id == '1' || $this->permission_id == '2') {
+        if ($this->permission_id == '48') {
             $book = $book->select('books.*')->whereIn('status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->limit(5)->get();
         } else {
             if ($this->position_id != null) {
@@ -233,7 +233,7 @@ class BookController extends Controller
                 ->orWhereRaw('inputBookref like "%' . $search . '%"')
                 ->orWhereRaw('inputContent like "%' . $search . '%"')
                 ->orWhereRaw('inputNote like "%' . $search . '%"');
-            if ($this->permission_id == '1' || $this->permission_id == '2') {
+            if ($this->permission_id == '48') {
                 $book = $query->select('books.*')->whereIn('status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->limit(5)->offset($pages)->get();
             } else {
                 $query = $query->where('log_status_books.position_id', $this->position_id);
@@ -247,7 +247,7 @@ class BookController extends Controller
             }
         } else {
             $query = new Book;
-            if ($this->permission_id == '1' || $this->permission_id == '2') {
+            if ($this->permission_id == '48') {
                 $book = $query->select('books.*')
                     ->whereIn('status', $this->permission)
                     ->orderBy('inputBookregistNumber', 'asc')
@@ -299,18 +299,18 @@ class BookController extends Controller
                 ->orWhereRaw('inputBookref like "%' . $search . '%"')
                 ->orWhereRaw('inputContent like "%' . $search . '%"')
                 ->orWhereRaw('inputNote like "%' . $search . '%")');
-            if ($this->permission_id == '1' || $this->permission_id == '2') {
+            if ($this->permission_id == '48') {
             } else {
                 $query = $query->where('log_status_books.position_id', $this->position_id);
             }
         } else {
             $query = new Book;
-            if ($this->permission_id == '1' || $this->permission_id == '2') {
+            if ($this->permission_id == '48') {
             } else {
                 $query = $query->where('log_status_books.position_id', $this->position_id);
             }
         }
-        if ($this->permission_id == '1' || $this->permission_id == '2') {
+        if ($this->permission_id == '48') {
             $book = $query->select('books.*')
                 ->whereIn('status', $this->permission)
                 ->orderBy('inputBookregistNumber', 'asc')
@@ -332,18 +332,18 @@ class BookController extends Controller
                 ->orWhereRaw('inputBookref like "%' . $search . '%"')
                 ->orWhereRaw('inputContent like "%' . $search . '%"')
                 ->orWhereRaw('inputNote like "%' . $search . '%"');
-            if ($this->permission_id == '1' || $this->permission_id == '2') {
+            if ($this->permission_id == '48') {
             } else {
                 $query = $query->where('books.position_id', $this->position_id);
             }
         } else {
             $query = new Book;
-            if ($this->permission_id == '1' || $this->permission_id == '2') {
+            if ($this->permission_id == '48') {
             } else {
                 $query = $query->where('books.position_id', $this->position_id);
             }
         }
-        if ($this->permission_id == '1' || $this->permission_id == '2') {
+        if ($this->permission_id == '48') {
             $book_count = $query->whereIn('status', $this->permission)->count();
         } else {
             $book_count = $query->whereIn('log_status_books.status', $this->permission)
