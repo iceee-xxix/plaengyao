@@ -230,4 +230,18 @@ class UsersController extends Controller
             }
         }
     }
+
+    public function getPermission(Request $request)
+    {
+        $input = $request->input();
+        $info = Permission::where('position_id', $input['id'])->get();
+        $html = '<option value="" disabled>กรุณาเลือก</option>';
+        if (count($info) > 0) {
+            foreach ($info as $rs) {
+                $html .= '<option value="' . $rs->id . '">' . $rs->permission_name . '</option>';
+            }
+        }
+
+        return response()->json($html);
+    }
 }

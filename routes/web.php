@@ -62,6 +62,7 @@ Route::middleware('auth.admin')->group(function () {
     Route::get('/users/form_permission/{id}', [UsersController::class, 'form_permission'])->name('users.form_permission');
     Route::post('/users/insertPermission', [UsersController::class, 'insertPermission'])->name('users.insertPermission');
     Route::post('/users/updatePermission', [UsersController::class, 'updatePermission'])->name('users.updatePermission');
+    Route::post('/users/getPermission', [UsersController::class, 'getPermission'])->name('users.getPermission');
     Route::get('/users/sync', [UsersController::class, 'sync'])->name('users.sync');
 
     Route::get('/tracking', [TrackController::class, 'index'])->name('tracking.index');
