@@ -13,6 +13,7 @@
                 @endif
                 <a href="{{url('tracking')}}" type="button" class="btn btn-outline-primary {{($function_key == 'tracking') ? 'active' : ''}}" style="margin-right:10px">ติดตามสถานะ</a>
                 <a href="{{url('bookSender')}}" type="button" class="btn btn-outline-primary {{($function_key == 'bookSender') ? 'active' : ''}}" style="margin-right:10px">ส่งหนังสือ</a>
+                <a href="{{url('listSender')}}" type="button" class="btn btn-outline-primary {{($function_key == 'listSender') ? 'active' : ''}}" style="margin-right:10px">สมุดทะเบียนส่ง</a>
             </ul>
         </div>
         <div class="ms-auto">

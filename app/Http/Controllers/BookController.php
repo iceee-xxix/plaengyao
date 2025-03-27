@@ -158,6 +158,8 @@ class BookController extends Controller
     {
         if (in_array('3', $this->permission)) {
             $data['extends'] = 'book.js.admin';
+        } else if (in_array('4', $this->permission)) {
+            $data['extends'] = 'book.js.admin';
         } else if (in_array('6', $this->permission)) {
             $data['extends'] = 'book.js.manager';
         } else if (in_array('8', $this->permission)) {

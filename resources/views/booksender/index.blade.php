@@ -180,42 +180,10 @@
                                 <textarea class="form-control" name="inputContent" id="inputContent"></textarea>
                             </div>
                         </div>
-                        <hr>
                         <div class="mb-2 row">
                             <label for="selectUsersParent" class="col-sm-2 col-form-label d-flex justify-content-end">ผู้ลงนาม:</label>
                             <div class="col-sm-10">
-                                <select class="form-control" name="selectUsersParent" id="selectUsersParent">
-                                    <option value="" disabled selected>กรุณาเลือก</option>
-                                    @foreach ($users as $rec)
-                                    <option value="{{$rec->id}}">{{$rec->fullname}} ({{$rec->permission_name}})</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                        <hr>
-                        <div class="mb-2 row">
-                            <label for="selectPositionParent" class="col-sm-2 col-form-label d-flex justify-content-end">เจ้าของเรื่อง:</label>
-                            <div class="col-sm-4">
-                                <select class="form-control select2" name="selectPositionParent" id="selectPositionParent">
-                                    <option value="" disabled selected>กรุณาเลือก</option>
-                                    @foreach($position as $rec)
-                                    <option value="{{$rec->id}}">{{$rec->position_name}}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <label for="emailText" class="col-sm-2 col-form-label d-flex justify-content-end">email:</label>
-                            <div class="col-sm-4">
-                                <label for="inputBookregistNumber" class="col-auto col-form-label fw-bold" style="text-align:left;" id="emailText"></label>
-                            </div>
-                        </div>
-                        <div class="mb-2 row">
-                            <label for="faxText" class="col-sm-2 col-form-label d-flex justify-content-end">โทรสาร:</label>
-                            <div class="col-sm-4">
-                                <label for="faxText" class="col-auto col-form-label fw-bold" style="text-align:left;" id="faxText"></label>
-                            </div>
-                            <label for="telText" class="col-sm-2 col-form-label d-flex justify-content-end">โทรศัพท์:</label>
-                            <div class="col-sm-4">
-                                <label for="telText" class="col-auto col-form-label fw-bold" style="text-align:left;" id="telText"></label>
+                                <input type="text" class="form-control" name="selectUsersParent" id="selectUsersParent">
                             </div>
                         </div>
                         <hr>

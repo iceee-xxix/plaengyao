@@ -98,7 +98,7 @@ class BooksenderController extends Controller
         $book->inputAttachments = $request['inputAttachments'];
         $book->inputContent = $request['inputContent'];
         $book->selectUsersParent = $request['selectUsersParent'];
-        $book->selectPositionParent = $request['selectPositionParent'];
+        $book->sessionPosition = auth()->user()->position_id;
         $book->created_by = $this->users->id;
         $book->updated_by = $this->users->id;
         $book->status = 1;
@@ -124,5 +124,61 @@ class BooksenderController extends Controller
             return redirect()->route('bookSender.index')->with('success', 'Book added successfully!');
         }
         return redirect()->route('bookSender.index')->with('error', 'ท่านไม่ได้เลือกไฟล์ที่ต้องการนำเข้าระบบ');
+    }
+
+    public function listSender()
+    {
+        $data['permission_data'] = $this->permission_data;
+        $data['function_key'] = 'listSender';
+        $data['book_type'] = Book_type::where('type', 2)->get();
+        $data['book_type_parent'] = Book_type_parent::get();
+        return view('bookList.index', $data);
+    }
+
+    public function listData(Request $request)
+    {
+        $data = [
+            'status' => false,
+            'message' => '',
+            'data' => []
+        ];
+        $input = $request->input();
+        $query = Book::select('books.*', 'book_type_parents.name as type_name', 'book_number_types.name as number_type', 'position_name')
+            ->leftJoin('book_type_parents', 'book_type_parents.id', '=', 'books.selectBookregistSup')
+            ->leftJoin('book_number_types', 'book_number_types.id', '=', 'books.selectBookcircular')
+            ->leftJoin('positions', 'positions.id', '=', 'books.sessionPosition');
+        if (!empty($input['keyword'])) {
+            $query->where('books.inputSubject', 'like', '%' . $input['keyword'] . '%');
+        }
+        if (!empty($input['selectBookregist'])) {
+            $query->where('books.selectBookregist', $input['selectBookregist']);
+        }
+        if (!empty($input['selectBookregist_parent'])) {
+            $query->where('books.selectBookregistSup', $input['selectBookregist_parent']);
+        }
+        $book = $query->where('books.sessionPosition', auth()->user()->position_id)
+            ->where('books.type', 2)
+            ->get();
+        if (count($book) > 0) {
+            $info = [];
+            foreach ($book as $rec) {
+                $action = '<a href="' . url('/storage/' . $rec->file) . '" target="_blank"><button class="btn btn-sm btn-outline-dark" title="เปิดไฟล์"><i class="fa fa-file-pdf-o"></i></button></a>';
+                $info[] = [
+                    'number_regis' => $rec->inputBookregistNumber,
+                    'type_regis' => $rec->type_name,
+                    'number_book' => $rec->inputBooknumberOrgStruc . '/' . $rec->number_type . $rec->inputBooknumberEnd,
+                    'title' => $rec->inputSubject,
+                    'date' => DateThai($rec->inputRecieveDate),
+                    'position_name' => $rec->position_name,
+                    'action' => $action
+                ];
+            }
+            $data = [
+                'data' => $info,
+                'status' => true,
+                'message' => 'success'
+            ];
+        }
+        return response()->json($data);
     }
 }

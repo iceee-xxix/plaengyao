@@ -71,6 +71,8 @@ Route::middleware('auth.admin')->group(function () {
     Route::post('/tracking/getDetailAll', [TrackController::class, 'getDetailAll'])->name('tracking.getDetailAll');
 
     Route::get('/bookSender', [BooksenderController::class, 'index'])->name('bookSender.index');
+    Route::get('/listSender', [BooksenderController::class, 'listSender'])->name('bookSender.listSender');
+    Route::post('/listSender/listData', [BooksenderController::class, 'listData'])->name('bookSender.listData');
     Route::post('/bookSender/bookType', [BooksenderController::class, 'bookType'])->name('bookSender.bookType');
     Route::post('/bookSender/getPosition', [BooksenderController::class, 'getPosition'])->name('bookSender.getPosition');
     Route::post('/bookSender/save', [BooksenderController::class, 'save'])->name('bookSender.save');
