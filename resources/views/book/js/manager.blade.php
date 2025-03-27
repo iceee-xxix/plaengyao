@@ -152,22 +152,27 @@
             });
         }
 
-        function drawMarkSignature(startX, startY, endX, endY) {
+        function drawMarkSignature(startX, startY, endX, endY, checkedValues) {
             var markCanvas = document.getElementById('mark-layer');
             var markCtx = markCanvas.getContext('2d');
             markCtx.clearRect(0, 0, markCanvas.width, markCanvas.height);
 
-            var img = new Image();
-            img.src = signature;
-            img.onload = function() {
-                markCtx.drawImage(img, startX, startY, 240, 130);
-                imgData = {
-                    x: startX,
-                    y: startY,
-                    width: 150,
-                    height: 100
-                };
-            }
+            checkedValues.forEach(element => {
+                if (element == 4) {
+                    var img = new Image();
+                    img.src = signature;
+                    img.onload = function() {
+                        markCtx.drawImage(img, startX, startY, 240, 130);
+                        imgData = {
+                            x: startX,
+                            y: startY,
+                            width: 150,
+                            height: 100
+                        };
+                    }
+                }
+            });
+
         }
 
         function drawTextHeader(type, startX, startY, text) {
@@ -241,12 +246,19 @@
                             var checkedValues = $('input[type="checkbox"]:checked').map(function() {
                                 return $(this).val();
                             }).get();
-                            drawMarkSignature(startX - 40, startY + (20 * lineBreakCount), endX, endY);
+                            drawMarkSignature(startX - 40, startY + (20 * lineBreakCount), endX, endY, checkedValues);
                             drawTextHeaderSignature('15px Sarabun', startX, startY, text);
 
                             var i = 0;
                             var checkbox_text = '';
                             var checkbox_x = 0;
+                            var plus_y = 20;
+                            checkedValues.forEach(element => {
+                                if (element == 4) {
+                                    plus_y = 160;
+                                }
+                            });
+
                             checkedValues.forEach(element => {
                                 switch (element) {
                                     case '1':
@@ -259,8 +271,9 @@
                                         checkbox_text = '{{convertDateToThai(date("Y-m-d"))}}';
                                         break;
                                 }
-                                console.log(checkbox_text);
-                                drawTextHeaderSignature('15px Sarabun', startX, (startY + 160 + (20 * lineBreakCount)) + (20 * i), checkbox_text);
+                                if (element != 4) {
+                                    drawTextHeaderSignature('15px Sarabun', startX, (startY + plus_y + (20 * lineBreakCount)) + (20 * i), checkbox_text);
+                                }
                                 i++;
                             });
                         };
@@ -673,6 +686,7 @@
                                 <li class="list-group-item"><input class="form-check-input me-1" type="checkbox" name="modal-check[]" value="1" checked>ชื่อ-นามสกุล</li>
                                 <li class="list-group-item"><input class="form-check-input me-1" type="checkbox" name="modal-check[]" value="2" checked>ตำแหน่ง</li>
                                 <li class="list-group-item"><input class="form-check-input me-1" type="checkbox" name="modal-check[]" value="3" checked>วันที่</li>
+                                <li class="list-group-item"><input class="form-check-input me-1" type="checkbox" name="modal-check[]" value="4" checked>ลายเซ็น</li>
                             </ul>
                         </div>
                     </div>

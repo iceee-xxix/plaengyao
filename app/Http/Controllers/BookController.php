@@ -708,9 +708,9 @@ class BookController extends Controller
                     ->first();
                 $update->parentUsers = $getForward->users_id;
             } else {
-                if(auth()->user()->position_id){
+                if (auth()->user()->position_id) {
                     $update = Log_status_book::where('position_id', auth()->user()->position_id)->where('book_id', $id)->first();
-                }else{
+                } else {
                     $update = Log_status_book::where('position_id', $position_id)->where('book_id', $id)->first();
                 }
                 $getForward = User::find($users_id);
@@ -835,7 +835,7 @@ class BookController extends Controller
                 $checkbox_text = '';
                 $checkbox_x = 0;
                 foreach ($checkedValues as $key => $value) {
-                    if ($checkedValues == 4) {
+                    if ($value == 4) {
                         $plus_y = 35;
                         $pdf->Image(public_path('storage/users/' . auth()->user()->signature), $x - 13, $y + 3 + (5 * $lineCount), 65, 30);
                     } else {
@@ -854,7 +854,9 @@ class BookController extends Controller
                             $checkbox_text = convertDateToThai(date("Y-m-d"));
                             break;
                     }
-                    $pdf->Text($x, $y + $plus_y + (5 * $lineCount) + (5 * $key), $checkbox_text);
+                    if ($value != 4) {
+                        $pdf->Text($x, $y + $plus_y + (5 * $lineCount) + (5 * $key), $checkbox_text);
+                    }
                 }
             }
         }
