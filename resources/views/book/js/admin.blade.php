@@ -225,13 +225,13 @@
                             checkedValues.forEach(element => {
                                 switch (element) {
                                     case '1':
-                                        checkbox_text = '({{$users->fullname}})';
+                                        checkbox_text = `({{$users->fullname}})`;
                                         break;
                                     case '2':
-                                        checkbox_text = '{{$permission_data->permission_name}}';
+                                        checkbox_text = `{{$permission_data->permission_name}}`;
                                         break;
                                     case '3':
-                                        checkbox_text = '{{convertDateToThai(date("Y-m-d"))}}';
+                                        checkbox_text = `{{convertDateToThai(date("Y-m-d"))}}`;
                                         break;
                                 }
                                 if (element != 4) {
