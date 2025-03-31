@@ -162,17 +162,23 @@
                     var img = new Image();
                     img.src = signature;
                     img.onload = function() {
-                        markCtx.drawImage(img, startX, startY, 240, 130);
+                        var imgWidth = 240;
+                        var imgHeight = 130;
+
+                        var centeredX = (startX + 50) - (imgWidth / 2);
+                        var centeredY = (startY + 60) - (imgHeight / 2);
+
+                        markCtx.drawImage(img, centeredX, centeredY, imgWidth, imgHeight);
+
                         imgData = {
-                            x: startX,
-                            y: startY,
-                            width: 150,
-                            height: 100
+                            x: centeredX,
+                            y: centeredY,
+                            width: imgWidth,
+                            height: imgHeight
                         };
                     }
                 }
             });
-
         }
 
         function drawTextHeader(type, startX, startY, text) {
@@ -181,7 +187,11 @@
 
             markCtx.font = type;
             markCtx.fillStyle = "blue";
-            markCtx.fillText(text, startX, startY);
+            var textWidth = markCtx.measureText(text).width;
+
+            var centeredX = startX - (textWidth / 2);
+
+            markCtx.fillText(text, centeredX, startY);
         }
 
         function drawTextHeaderSignature(type, startX, startY, text) {
@@ -193,8 +203,13 @@
 
             var lines = text.split('\n');
             var lineHeight = 20;
+
             for (var i = 0; i < lines.length; i++) {
-                markCtx.fillText(lines[i], startX, startY + (i * lineHeight));
+                // 🔴 คำนวณความกว้างของแต่ละบรรทัด
+                var textWidth = markCtx.measureText(lines[i]).width;
+                var centeredX = startX - (textWidth / 2);
+
+                markCtx.fillText(lines[i], centeredX, startY + (i * lineHeight)); // 🔴 เปลี่ยน startX → centeredX
             }
         }
         $('#modalForm').on('submit', function(e) {
@@ -271,8 +286,18 @@
                                         checkbox_text = `{{convertDateToThai(date("Y-m-d"))}}`;
                                         break;
                                 }
+                                var lines = checkbox_text.split('\n');
                                 if (element != 4) {
                                     drawTextHeaderSignature('15px Sarabun', startX, (startY + plus_y + (20 * lineBreakCount)) + (20 * i), checkbox_text);
+                                }
+                                if (lines.length > 1) {
+                                    var stop = 0;
+                                    lines.forEach(element => {
+                                        if (stop != 0) {
+                                            i++;
+                                        }
+                                        stop++;
+                                    });
                                 }
                                 i++;
                             });

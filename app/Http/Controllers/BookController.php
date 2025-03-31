@@ -182,7 +182,7 @@ class BookController extends Controller
         Session::forget('keyword');
         $book = new Book;
         if ($this->permission_id == '1' || $this->permission_id == '2') {
-            $book = $book->select('books.*')->whereIn('status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->limit(5)->get();
+            $book = $book->select('books.*')->whereIn('status', $this->permission)->orderBy('created_at', 'desc')->limit(5)->get();
         } else {
             if ($this->position_id != null) {
                 $book = $book->where('log_status_books.position_id', $this->position_id);
@@ -190,7 +190,7 @@ class BookController extends Controller
             $book = $book->select('books.*', 'log_status_books.status', 'log_status_books.file', 'log_status_books.position_id')
                 ->leftJoin('log_status_books', 'books.id', '=', 'log_status_books.book_id')
                 ->whereIn('log_status_books.status', $this->permission)
-                ->orderBy('inputBookregistNumber', 'asc')
+                ->orderBy('created_at', 'desc')
                 ->limit(5)
                 ->get();
         }
@@ -236,13 +236,13 @@ class BookController extends Controller
                 ->orWhereRaw('inputContent like "%' . $search . '%"')
                 ->orWhereRaw('inputNote like "%' . $search . '%"');
             if ($this->permission_id == '1' || $this->permission_id == '2') {
-                $book = $query->select('books.*')->whereIn('status', $this->permission)->orderBy('inputBookregistNumber', 'asc')->limit(5)->offset($pages)->get();
+                $book = $query->select('books.*')->whereIn('status', $this->permission)->orderBy('created_at', 'desc')->limit(5)->offset($pages)->get();
             } else {
                 $query = $query->where('log_status_books.position_id', $this->position_id);
                 $book = $query->select('books.*', 'log_status_books.status', 'log_status_books.file')
                     ->leftJoin('log_status_books', 'books.id', '=', 'log_status_books.book_id')
                     ->whereIn('log_status_books.status', $this->permission)
-                    ->orderBy('inputBookregistNumber', 'asc')
+                    ->orderBy('created_at', 'desc')
                     ->limit(5)
                     ->offset($pages)
                     ->get();
@@ -252,7 +252,7 @@ class BookController extends Controller
             if ($this->permission_id == '1' || $this->permission_id == '2') {
                 $book = $query->select('books.*')
                     ->whereIn('status', $this->permission)
-                    ->orderBy('inputBookregistNumber', 'asc')
+                    ->orderBy('created_at', 'desc')
                     ->limit(5)
                     ->offset($pages)
                     ->get();
@@ -261,7 +261,7 @@ class BookController extends Controller
                 $book = $query->select('books.*', 'log_status_books.status', 'log_status_books.file')
                     ->leftJoin('log_status_books', 'books.id', '=', 'log_status_books.book_id')
                     ->whereIn('log_status_books.status', $this->permission)
-                    ->orderBy('inputBookregistNumber', 'asc')
+                    ->orderBy('created_at', 'desc')
                     ->limit(5)
                     ->offset($pages)
                     ->get();
@@ -315,7 +315,7 @@ class BookController extends Controller
         if ($this->permission_id == '1' || $this->permission_id == '2') {
             $book = $query->select('books.*')
                 ->whereIn('status', $this->permission)
-                ->orderBy('inputBookregistNumber', 'asc')
+                ->orderBy('created_at', 'desc')
                 ->limit(5)
                 ->offset($pages)
                 ->get();
@@ -323,7 +323,7 @@ class BookController extends Controller
             $book = $query->select('books.*', 'log_status_books.status', 'log_status_books.file')
                 ->leftJoin('log_status_books', 'books.id', '=', 'log_status_books.book_id')
                 ->whereIn('log_status_books.status', $this->permission)
-                ->orderBy('inputBookregistNumber', 'asc')
+                ->orderBy('created_at', 'desc')
                 ->limit(5)
                 ->offset($pages)
                 ->get();
@@ -827,11 +827,15 @@ class BookController extends Controller
                 $pdf->AddFont('sarabunextralight', '', $fontPath);
                 $pdf->setTextColor(0, 0, 255);
                 $pdf->setDrawColor(0, 0, 255);
+
                 $x = ($x / 1.5) * 0.3528;
                 $y = ($y / 1.5) * 0.3528;
+
                 $pdf->SetFont('sarabunextralight', '', 10);
+
                 for ($i = 0; $i <= $lineCount; $i++) {
-                    $pdf->Text($x, $y + (5 * $i), $text[$i]);
+                    $centeredX = $this->getCenteredPosition($pdf, $text[$i], 10, $x, $y + (5 * $i));
+                    $pdf->Text($centeredX, $y + (5 * $i), $text[$i]);
                 }
 
                 $checkbox_text = '';
@@ -839,25 +843,40 @@ class BookController extends Controller
                 foreach ($checkedValues as $key => $value) {
                     if ($value == 4) {
                         $plus_y = 35;
-                        $pdf->Image(public_path('storage/users/' . auth()->user()->signature), $x - 13, $y + 3 + (5 * $lineCount), 65, 30);
+                        $signatureX = $x - 25;
+                        $signatureY = $y + 3 + (5 * $lineCount);
+                        $pdf->Image(public_path('storage/users/' . auth()->user()->signature), $signatureX, $signatureY, 65, 30);
                     } else {
                         $plus_y = 5;
                     }
                 }
+
+                $i = 0;
                 foreach ($checkedValues as $key => $value) {
                     switch ($value) {
                         case '1':
                             $checkbox_text = '(' . $this->users->fullname . ')';
                             break;
                         case '2':
-                            $checkbox_text = $this->permission_data->permission_name;
+                            $checkbox_text = str_replace('\n', '<br>', $this->permission_data->permission_name);
                             break;
                         case '3':
                             $checkbox_text = convertDateToThai(date("Y-m-d"));
                             break;
                     }
+                    $text = explode("\n", $checkbox_text);
                     if ($value != 4) {
-                        $pdf->Text($x, $y + $plus_y + (5 * $lineCount) + (5 * $key), $checkbox_text);
+                        $stop = 0;
+                        foreach ($text as $text_) {
+                            if (count($text) > 1) {
+                                if ($stop != 0) {
+                                    $i++;
+                                }
+                                $stop++;
+                            }
+                            $centeredX = $this->getCenteredPosition($pdf, $text_, 10, $x, $y + $plus_y + (5 * $lineCount) + (5 * ($key + $i)));
+                            $pdf->Text($centeredX, $y + $plus_y + (5 * $lineCount) + (5 * ($key + $i)), $text_);
+                        }
                     }
                 }
             }
@@ -865,6 +884,20 @@ class BookController extends Controller
 
         $outputPath = public_path('/storage/' . $data->file);
         $pdf->Output($outputPath, 'F');
+    }
+
+    function getCenteredPosition($pdf, $text, $fontSize, $startX, $startY)
+    {
+        // กำหนดฟอนต์และขนาด
+        $pdf->SetFont('sarabunextralight', '', $fontSize);
+
+        // คำนวณความกว้างของข้อความ
+        $textWidth = $pdf->GetStringWidth($text);
+
+        // คำนวณตำแหน่งกลาง
+        $centeredX = $startX - ($textWidth / 2);
+
+        return $centeredX;
     }
 
     public function manager_stamp(Request $request)

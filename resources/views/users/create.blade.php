@@ -18,17 +18,6 @@
             <div class="card-body">
                 <div class="modal-body">
                     <div class="mb-3 row">
-                        <label for="inputPassword" class="col-sm-2 col-form-label">ตำแหน่ง :</label>
-                        <div class="col-sm-10">
-                            <select class="form-select select2" id="select_permission" name="select_permission" require>
-                                <option value="" disabled selected>กรุณาเลือก</option>
-                                @foreach($permission as $rs)
-                                <option value="{{$rs->id}}">{{$rs->permission_name}}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                    <div class="mb-3 row">
                         <label for="inputPassword" class="col-sm-2 col-form-label">หน่วยงาน :</label>
                         <div class="col-sm-10">
                             <select class="form-select select2" id="select_position" name="select_position" require>
@@ -36,6 +25,14 @@
                                 @foreach($position as $rs)
                                 <option value="{{$rs->id}}">{{$rs->position_name}}</option>
                                 @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3 row">
+                        <label for="inputPassword" class="col-sm-2 col-form-label">ตำแหน่ง :</label>
+                        <div class="col-sm-10">
+                            <select class="form-select select2" id="select_permission" name="select_permission" require>
+                                <option value="" disabled selected>กรุณาเลือก</option>
                             </select>
                         </div>
                     </div>

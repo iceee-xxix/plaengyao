@@ -238,7 +238,11 @@ class UsersController extends Controller
         $html = '<option value="" disabled>กรุณาเลือก</option>';
         if (count($info) > 0) {
             foreach ($info as $rs) {
-                $html .= '<option value="' . $rs->id . '">' . $rs->permission_name . '</option>';
+                $selected = '';
+                if ($input['position_id'] == $input['id']) {
+                    $selected = 'selected';
+                }
+                $html .= '<option value="' . $rs->id . '" ' . $selected . '>' . $rs->permission_name . '</option>';
             }
         }
 
