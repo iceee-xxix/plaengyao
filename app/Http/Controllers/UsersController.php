@@ -239,8 +239,10 @@ class UsersController extends Controller
         if (count($info) > 0) {
             foreach ($info as $rs) {
                 $selected = '';
-                if ($input['position_id'] == $input['id']) {
-                    $selected = 'selected';
+                if (isset($input['position_id'])) {
+                    if ($input['position_id'] == $input['id']) {
+                        $selected = 'selected';
+                    }
                 }
                 $html .= '<option value="' . $rs->id . '" ' . $selected . '>' . $rs->permission_name . '</option>';
             }
