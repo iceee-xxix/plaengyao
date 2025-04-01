@@ -138,6 +138,11 @@
             ]
         });
     });
+    document.getElementById('formSubmit').addEventListener('keydown', function(event) {
+        if (event.key === 'Enter' && event.target.tagName !== 'TEXTAREA') {
+            event.preventDefault(); // ป้องกัน submit
+        }
+    });
 </script>
 @if(session('success'))
 <script>
