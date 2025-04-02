@@ -157,11 +157,11 @@ class BookController extends Controller
     public function show()
     {
         if (in_array('3', $this->permission)) {
-            $data['extends'] = 'book.js.admin';
+            $data['extends'] = 'book.js.admin'; //แก้แล้ว
         } else if (in_array('4', $this->permission)) {
-            $data['extends'] = 'book.js.admin';
+            $data['extends'] = 'book.js.admin'; //แก้แล้ว
         } else if (in_array('6', $this->permission)) {
-            $data['extends'] = 'book.js.manager';
+            $data['extends'] = 'book.js.manager'; //แก้แล้ว
         } else if (in_array('8', $this->permission)) {
             $data['extends'] = 'book.js.bailiff';
         } else if (in_array('10', $this->permission)) {
@@ -171,6 +171,7 @@ class BookController extends Controller
         } else {
             $data['extends'] = 'book.js.show';
         }
+        // dd($data['extends']);
         $data['function_key'] = __FUNCTION__;
         $data['permission_id'] = $this->permission_id;
         $data['permission'] = implode(',', $this->permission);
@@ -373,6 +374,7 @@ class BookController extends Controller
         $id = $request->input('id');
         $positionX = $request->input('positionX');
         $positionY = $request->input('positionY');
+        $positionPages = $request->input('positionPages');
         $pages = $request->input('pages');
         $query = new Book;
         $book = $query->where('id', $id)->first();
@@ -381,6 +383,9 @@ class BookController extends Controller
             $update->status = 2;
             $update->updated_by = $this->users->id;
             $update->updated_at = date('Y-m-d H:i:s');
+            if ($positionPages == 2) {
+                $update->new_pages = $book->new_pages + 1;
+            }
             if ($update->save()) {
                 log_active([
                     'users_id' => auth()->user()->id,
@@ -389,7 +394,7 @@ class BookController extends Controller
                     'detail' => 'ลงบันทึกรับหนังสือ',
                     'book_id' => $id
                 ]);
-                $this->editPdf($positionX, $positionY, $pages, $book);
+                $this->editPdf($positionX, $positionY, $pages, $book, $positionPages);
                 $data['status'] = true;
                 $data['message'] = 'ลงบันทึกเวลาเรียบร้อยแล้ว';
             }
@@ -397,9 +402,8 @@ class BookController extends Controller
         return response()->json($data);
     }
 
-    public function editPdf($x, $y, $pages, $data)
+    public function editPdf($x, $y, $pages, $data, $positionPages)
     {
-        $pdf = new Fpdi();
         $filePath = public_path('/storage/' . $data->file);
 
         if (!file_exists($filePath)) {
@@ -407,36 +411,66 @@ class BookController extends Controller
         }
 
         $pdf = new Fpdi();
+        $pdf->setAutoPageBreak(false, 0);
+        $pdf->SetMargins(210, 0, 0);
 
         $pageCount = $pdf->setSourceFile($filePath);
-
+        $stop_ = 0;
         for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
             $templateId = $pdf->importPage($pageNo);
             $pdf->AddPage();
             $pdf->useTemplate($templateId);
 
-            if ($pageNo == $pages) {
+            if ($positionPages == 2) {
+                if ($stop_ == 0) {
+                    $pdf->AddPage();
 
-                $fontPath = resource_path('fonts/sarabunextralight.php');
-                $pdf->AddFont('sarabunextralight', '', $fontPath);
-                $pdf->setTextColor(0, 0, 255);
-                $pdf->setDrawColor(0, 0, 255);
-                $x = ($x / 1.5) * 0.3528;
-                $y = ($y / 1.5) * 0.3528;
-                $width = 50;
-                $height = 27;
-                $pdf->Rect($x, $y, $width, $height);
-                $pdf->SetFont('sarabunextralight', '', 10);
-                $pdf->Text($x + 1, $y + 2, 'องค์การบริหารส่วนตำบลแปลงยาว');
-                $pdf->Text($x + 21, $y + 8.5, numberToThaiDigits($data->inputBookregistNumber));
-                $pdf->SetFont('sarabunextralight', '', 8);
-                $pdf->Text($x + 1, $y + 10, 'รับที่.................................................................');
-                $pdf->Text($x + 8, $y + 15, convertDayToThai($data->inputRecieveDate));
-                $pdf->Text($x + 19.5, $y + 15, convertMonthsToThai($data->inputRecieveDate));
-                $pdf->Text($x + 39, $y + 15, convertYearsToThai($data->inputRecieveDate));
-                $pdf->Text($x + 1, $y + 16, 'วันที่...........เดือน........................พ.ศ..............');
-                $pdf->Text($x + 19, $y + 20, convertTimeToThai(date('H:i:s', strtotime($data->inputRecieveDate))));
-                $pdf->Text($x + 1, $y + 21, 'เวลา.............................................................น.');
+                    $fontPath = resource_path('fonts/sarabunextralight.php');
+                    $pdf->AddFont('sarabunextralight', '', $fontPath);
+                    $pdf->setTextColor(0, 0, 255);
+                    $pdf->setDrawColor(0, 0, 255);
+                    $x = ($x / 1.5) * 0.3528;
+                    $y = ($y / 1.5) * 0.3528;
+                    $width = 50;
+                    $height = 27;
+                    $pdf->Rect($x, $y, $width, $height);
+                    $pdf->SetFont('sarabunextralight', '', 10);
+                    $pdf->Text($x + 1, $y + 2, 'องค์การบริหารส่วนตำบลแปลงยาว');
+                    $pdf->Text($x + 21, $y + 8.5, numberToThaiDigits($data->inputBookregistNumber));
+                    $pdf->SetFont('sarabunextralight', '', 8);
+                    $pdf->Text($x + 1, $y + 10, 'รับที่.................................................................');
+                    $pdf->Text($x + 8, $y + 15, convertDayToThai($data->inputRecieveDate));
+                    $pdf->Text($x + 19.5, $y + 15, convertMonthsToThai($data->inputRecieveDate));
+                    $pdf->Text($x + 39, $y + 15, convertYearsToThai($data->inputRecieveDate));
+                    $pdf->Text($x + 1, $y + 16, 'วันที่...........เดือน........................พ.ศ..............');
+                    $pdf->Text($x + 19, $y + 20, convertTimeToThai(date('H:i:s', strtotime($data->inputRecieveDate))));
+                    $pdf->Text($x + 1, $y + 21, 'เวลา.............................................................น.');
+
+                    $stop_++;
+                }
+            } else {
+                if ($pageNo == $pages) {
+                    $fontPath = resource_path('fonts/sarabunextralight.php');
+                    $pdf->AddFont('sarabunextralight', '', $fontPath);
+                    $pdf->setTextColor(0, 0, 255);
+                    $pdf->setDrawColor(0, 0, 255);
+                    $x = ($x / 1.5) * 0.3528;
+                    $y = ($y / 1.5) * 0.3528;
+                    $width = 50;
+                    $height = 27;
+                    $pdf->Rect($x, $y, $width, $height);
+                    $pdf->SetFont('sarabunextralight', '', 10);
+                    $pdf->Text($x + 1, $y + 2, 'องค์การบริหารส่วนตำบลแปลงยาว');
+                    $pdf->Text($x + 21, $y + 8.5, numberToThaiDigits($data->inputBookregistNumber));
+                    $pdf->SetFont('sarabunextralight', '', 8);
+                    $pdf->Text($x + 1, $y + 10, 'รับที่.................................................................');
+                    $pdf->Text($x + 8, $y + 15, convertDayToThai($data->inputRecieveDate));
+                    $pdf->Text($x + 19.5, $y + 15, convertMonthsToThai($data->inputRecieveDate));
+                    $pdf->Text($x + 39, $y + 15, convertYearsToThai($data->inputRecieveDate));
+                    $pdf->Text($x + 1, $y + 16, 'วันที่...........เดือน........................พ.ศ..............');
+                    $pdf->Text($x + 19, $y + 20, convertTimeToThai(date('H:i:s', strtotime($data->inputRecieveDate))));
+                    $pdf->Text($x + 1, $y + 21, 'เวลา.............................................................น.');
+                }
             }
         }
 
@@ -473,6 +507,7 @@ class BookController extends Controller
                 $insert->datetime = date('Y-m-d H:i:s');
                 $insert->file = $value . '/' . $book->file;
                 $insert->position_id = $value;
+                $insert->new_pages = $book->new_pages;
                 if ($insert->save()) {
                     $sql = Position::where('id', $value)->first();
                     log_active([
@@ -508,6 +543,7 @@ class BookController extends Controller
             $update->updated_at = date('Y-m-d H:i:s');
             foreach ($position_id as $value) {
                 $filePath = storage_path('app/public/' . auth()->user()->position_id . '/' . $book->file);
+                $logs_file = Log_status_book::where('status', 3.5)->where('position_id', auth()->user()->position_id)->where('book_id', $book->id)->first();
                 $insert = new Log_status_book();
                 $destinationDirectory = storage_path('app/public/' . $value . '/' . $book->file);
                 if (!File::exists(storage_path('app/public/' . $value . '/uploads'))) {
@@ -521,6 +557,7 @@ class BookController extends Controller
                 $insert->datetime = date('Y-m-d H:i:s');
                 $insert->file = $value . '/' . $book->file;
                 $insert->position_id = $value;
+                $insert->new_pages = $logs_file->new_pages;
                 if ($insert->save()) {
                     $sql = Position::where('id', $value)->first();
                     log_active([
@@ -553,6 +590,7 @@ class BookController extends Controller
         $id = $request->input('id');
         $positionX = $request->input('positionX');
         $positionY = $request->input('positionY');
+        $positionPages = $request->input('positionPages');
         $pages = $request->input('pages');
         $query = new Book;
         $book = $query->where('id', $id)->first();
@@ -563,12 +601,15 @@ class BookController extends Controller
             $update->adminBookNumber = adminNumber();
             $update->adminDated = date('Y-m-d H:i:s');
             if ($update->save()) {
-                $data = [
-                    'adminBookNumber' => adminNumber(),
-                    'adminDated' => date('Y-m-d H:i:s'),
-                    'file' => $book->file
-                ];
-                $this->editPdf_admin($positionX, $positionY, $pages, $update);
+                $this->editPdf_admin($positionX, $positionY, $pages, $update, $positionPages);
+                if ($positionPages == 2) {
+                    if($update->new_pages != 0){
+                        $update->new_pages = $update->new_pages + 1;
+                    }else{
+                        $update->new_pages = $book->new_pages + 1;
+                    }
+                    $update->save();
+                }
                 log_active([
                     'users_id' => auth()->user()->id,
                     'status' => 3.5,
@@ -584,7 +625,7 @@ class BookController extends Controller
         return response()->json($data);
     }
 
-    public function editPdf_admin($x, $y, $pages, $data)
+    public function editPdf_admin($x, $y, $pages, $data, $positionPages)
     {
 
         $permission_name = $this->position_name;
@@ -602,7 +643,6 @@ class BookController extends Controller
         } else {
             $dynamicX = 17.5;
         }
-        $pdf = new Fpdi();
         $filePath = public_path('/storage/' . $data['file']);
 
         if (!file_exists($filePath)) {
@@ -610,36 +650,73 @@ class BookController extends Controller
         }
 
         $pdf = new Fpdi();
+        $pdf->setAutoPageBreak(false, 0);
+        $pdf->SetMargins(210, 0, 0);
 
         $pageCount = $pdf->setSourceFile($filePath);
+        $stop_ = 0;
+        $skip = 0;
 
         for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
             $templateId = $pdf->importPage($pageNo);
             $pdf->AddPage();
             $pdf->useTemplate($templateId);
 
-            if ($pageNo == $pages) {
+            if ($positionPages == 2) {
+                if ($stop_ == 0) {
+                    if ($skip == $data->new_pages) {
+                        $pdf->AddPage();
+                        $pdf->SetFillColor(255, 255, 255);
+                        $pdf->Rect(0, 0, 210, 10, 'F');
+                        $stop_++;
 
-                $fontPath = resource_path('fonts/sarabunextralight.php');
-                $pdf->AddFont('sarabunextralight', '', $fontPath);
-                $pdf->setTextColor(0, 0, 255);
-                $pdf->setDrawColor(0, 0, 255);
-                $x = ($x / 1.5) * 0.3528;
-                $y = ($y / 1.5) * 0.3528;
-                $width = 50;
-                $height = 27;
-                $pdf->Rect($x, $y, $width, $height);
-                $pdf->SetFont('sarabunextralight', '', 10);
-                $pdf->Text($x + $dynamicX, $y + 2, $permission_name);
-                $pdf->Text($x + 21, $y + 8.5, numberToThaiDigits($data['adminBookNumber']));
-                $pdf->SetFont('sarabunextralight', '', 8);
-                $pdf->Text($x + 1, $y + 10, 'รับที่.................................................................');
-                $pdf->Text($x + 8, $y + 15, convertDayToThai($data['adminDated']));
-                $pdf->Text($x + 19.5, $y + 15, convertMonthsToThai($data['adminDated']));
-                $pdf->Text($x + 39, $y + 15, convertYearsToThai($data['adminDated']));
-                $pdf->Text($x + 1, $y + 16, 'วันที่...........เดือน........................พ.ศ..............');
-                $pdf->Text($x + 19, $y + 20, convertTimeToThai(date('H:i:s', strtotime($data['adminDated']))));
-                $pdf->Text($x + 1, $y + 21, 'เวลา.............................................................น.');
+                        $fontPath = resource_path('fonts/sarabunextralight.php');
+                        $pdf->AddFont('sarabunextralight', '', $fontPath);
+                        $pdf->setTextColor(0, 0, 255);
+                        $pdf->setDrawColor(0, 0, 255);
+                        $x = ($x / 1.5) * 0.3528;
+                        $y = ($y / 1.5) * 0.3528;
+                        $width = 50;
+                        $height = 27;
+                        $pdf->Rect($x, $y, $width, $height);
+                        $pdf->SetFont('sarabunextralight', '', 10);
+                        $pdf->Text($x + $dynamicX, $y + 2, $permission_name);
+                        $pdf->Text($x + 21, $y + 8.5, numberToThaiDigits($data['adminBookNumber']));
+                        $pdf->SetFont('sarabunextralight', '', 8);
+                        $pdf->Text($x + 1, $y + 10, 'รับที่.................................................................');
+                        $pdf->Text($x + 8, $y + 15, convertDayToThai($data['adminDated']));
+                        $pdf->Text($x + 19.5, $y + 15, convertMonthsToThai($data['adminDated']));
+                        $pdf->Text($x + 39, $y + 15, convertYearsToThai($data['adminDated']));
+                        $pdf->Text($x + 1, $y + 16, 'วันที่...........เดือน........................พ.ศ..............');
+                        $pdf->Text($x + 19, $y + 20, convertTimeToThai(date('H:i:s', strtotime($data['adminDated']))));
+                        $pdf->Text($x + 1, $y + 21, 'เวลา.............................................................น.');
+                    }
+                    $skip++;
+                }
+            } else {
+                if ($pageNo == $pages) {
+
+                    $fontPath = resource_path('fonts/sarabunextralight.php');
+                    $pdf->AddFont('sarabunextralight', '', $fontPath);
+                    $pdf->setTextColor(0, 0, 255);
+                    $pdf->setDrawColor(0, 0, 255);
+                    $x = ($x / 1.5) * 0.3528;
+                    $y = ($y / 1.5) * 0.3528;
+                    $width = 50;
+                    $height = 27;
+                    $pdf->Rect($x, $y, $width, $height);
+                    $pdf->SetFont('sarabunextralight', '', 10);
+                    $pdf->Text($x + $dynamicX, $y + 2, $permission_name);
+                    $pdf->Text($x + 21, $y + 8.5, numberToThaiDigits($data['adminBookNumber']));
+                    $pdf->SetFont('sarabunextralight', '', 8);
+                    $pdf->Text($x + 1, $y + 10, 'รับที่.................................................................');
+                    $pdf->Text($x + 8, $y + 15, convertDayToThai($data['adminDated']));
+                    $pdf->Text($x + 19.5, $y + 15, convertMonthsToThai($data['adminDated']));
+                    $pdf->Text($x + 39, $y + 15, convertYearsToThai($data['adminDated']));
+                    $pdf->Text($x + 1, $y + 16, 'วันที่...........เดือน........................พ.ศ..............');
+                    $pdf->Text($x + 19, $y + 20, convertTimeToThai(date('H:i:s', strtotime($data['adminDated']))));
+                    $pdf->Text($x + 1, $y + 21, 'เวลา.............................................................น.');
+                }
             }
         }
 
@@ -791,7 +868,11 @@ class BookController extends Controller
                     'book_id' => $input['id'],
                     'position_id' => $update->position_id
                 ]);
-                $this->editPdf_signature($input['positionX'], $input['positionY'], $input['pages'], $update, $input['text'], $input['checkedValues']);
+                $this->editPdf_signature($input['positionX'], $input['positionY'], $input['pages'], $update, $input['text'], $input['checkedValues'], $input['positionPages']);
+                if ($input['positionPages'] == 2) {
+                    $update->new_pages = $update->new_pages + 1;
+                    $update->save();
+                }
                 $data['status'] = true;
                 $data['message'] = 'ลงบันทึกเกษียณหนังสือเรียบร้อย';
             }
@@ -799,13 +880,12 @@ class BookController extends Controller
         return response()->json($data);
     }
 
-    public function editPdf_signature($x, $y, $pages, $data, $text, $checkedValues)
+    public function editPdf_signature($x, $y, $pages, $data, $text, $checkedValues, $positionPages)
     {
         error_reporting(E_ALL & ~E_WARNING);
         preg_match_all('/\n/', $text, $matches);
         $lineCount = count($matches[0]);
         $text = explode("\n", $text);
-        $pdf = new Fpdi();
         $filePath = public_path('/storage/' . $data['file']);
 
         if (!file_exists($filePath)) {
@@ -813,69 +893,142 @@ class BookController extends Controller
         }
 
         $pdf = new Fpdi();
+        $pdf->setAutoPageBreak(false, 0);
+        $pdf->SetMargins(210, 0, 0);
 
         $pageCount = $pdf->setSourceFile($filePath);
+        $stop_ = 0;
+        $skip = 0;
 
         for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
             $templateId = $pdf->importPage($pageNo);
             $pdf->AddPage();
             $pdf->useTemplate($templateId);
 
-            if ($pageNo == $pages) {
+            if ($positionPages == 2) {
+                if ($stop_ == 0) {
+                    if ($skip == $data->new_pages) {
+                        $pdf->AddPage();
+                        $pdf->SetFillColor(255, 255, 255);
+                        $pdf->Rect(0, 0, 210, 10, 'F');
+                        $stop_++;
 
-                $fontPath = resource_path('fonts/sarabunextralight.php');
-                $pdf->AddFont('sarabunextralight', '', $fontPath);
-                $pdf->setTextColor(0, 0, 255);
-                $pdf->setDrawColor(0, 0, 255);
+                        $fontPath = resource_path('fonts/sarabunextralight.php');
+                        $pdf->AddFont('sarabunextralight', '', $fontPath);
+                        $pdf->setTextColor(0, 0, 255);
+                        $pdf->setDrawColor(0, 0, 255);
 
-                $x = ($x / 1.5) * 0.3528;
-                $y = ($y / 1.5) * 0.3528;
+                        $x = ($x / 1.5) * 0.3528;
+                        $y = ($y / 1.5) * 0.3528;
 
-                $pdf->SetFont('sarabunextralight', '', 10);
+                        $pdf->SetFont('sarabunextralight', '', 10);
 
-                for ($i = 0; $i <= $lineCount; $i++) {
-                    $centeredX = $this->getCenteredPosition($pdf, $text[$i], 10, $x, $y + (5 * $i));
-                    $pdf->Text($centeredX, $y + (5 * $i), $text[$i]);
-                }
+                        for ($i = 0; $i <= $lineCount; $i++) {
+                            $centeredX = $this->getCenteredPosition($pdf, $text[$i], 10, $x, $y + (5 * $i));
+                            $pdf->Text($centeredX, $y + (5 * $i), $text[$i]);
+                        }
 
-                $checkbox_text = '';
-                $checkbox_x = 0;
-                foreach ($checkedValues as $key => $value) {
-                    if ($value == 4) {
-                        $plus_y = 35;
-                        $signatureX = $x - 25;
-                        $signatureY = $y + 3 + (5 * $lineCount);
-                        $pdf->Image(public_path('storage/users/' . auth()->user()->signature), $signatureX, $signatureY, 65, 30);
-                    } else {
-                        $plus_y = 5;
-                    }
-                }
-
-                $i = 0;
-                foreach ($checkedValues as $key => $value) {
-                    switch ($value) {
-                        case '1':
-                            $checkbox_text = '(' . $this->users->fullname . ')';
-                            break;
-                        case '2':
-                            $checkbox_text = str_replace('\n', '<br>', $this->permission_data->permission_name);
-                            break;
-                        case '3':
-                            $checkbox_text = convertDateToThai(date("Y-m-d"));
-                            break;
-                    }
-                    $text = explode("\n", $checkbox_text);
-                    if ($value != 4) {
-                        $stop = 0;
-                        foreach ($text as $text_) {
-                            if (count($text) > 1) {
-                                if ($stop != 0) {
-                                    $i++;
-                                }
-                                $stop++;
+                        $checkbox_text = '';
+                        $checkbox_x = 0;
+                        foreach ($checkedValues as $key => $value) {
+                            if ($value == 4) {
+                                $plus_y = 35;
+                                $signatureX = $x - 25;
+                                $signatureY = $y + 3 + (5 * $lineCount);
+                                $pdf->Image(public_path('storage/users/' . auth()->user()->signature), $signatureX, $signatureY, 65, 30);
+                            } else {
+                                $plus_y = 5;
                             }
-                            $centeredX = $this->getCenteredPosition($pdf, $text_, 10, $x, $y + $plus_y + (5 * $lineCount) + (5 * ($key + $i)));
-                            $pdf->Text($centeredX, $y + $plus_y + (5 * $lineCount) + (5 * ($key + $i)), $text_);
+                        }
+
+                        $i = 0;
+                        foreach ($checkedValues as $key => $value) {
+                            switch ($value) {
+                                case '1':
+                                    $checkbox_text = '(' . $this->users->fullname . ')';
+                                    break;
+                                case '2':
+                                    $checkbox_text = str_replace('\n', '<br>', $this->permission_data->permission_name);
+                                    break;
+                                case '3':
+                                    $checkbox_text = convertDateToThai(date("Y-m-d"));
+                                    break;
+                            }
+                            $text = explode("\n", $checkbox_text);
+                            if ($value != 4) {
+                                $stop = 0;
+                                foreach ($text as $text_) {
+                                    if (count($text) > 1) {
+                                        if ($stop != 0) {
+                                            $i++;
+                                        }
+                                        $stop++;
+                                    }
+                                    $centeredX = $this->getCenteredPosition($pdf, $text_, 10, $x, $y + $plus_y + (5 * $lineCount) + (5 * ($key + $i)));
+                                    $pdf->Text($centeredX, $y + $plus_y + (5 * $lineCount) + (5 * ($key + $i)), $text_);
+                                }
+                            }
+                        }
+                    }
+                    $skip++;
+                }
+            } else {
+                if ($pageNo == $pages) {
+
+                    $fontPath = resource_path('fonts/sarabunextralight.php');
+                    $pdf->AddFont('sarabunextralight', '', $fontPath);
+                    $pdf->setTextColor(0, 0, 255);
+                    $pdf->setDrawColor(0, 0, 255);
+
+                    $x = ($x / 1.5) * 0.3528;
+                    $y = ($y / 1.5) * 0.3528;
+
+                    $pdf->SetFont('sarabunextralight', '', 10);
+
+                    for ($i = 0; $i <= $lineCount; $i++) {
+                        $centeredX = $this->getCenteredPosition($pdf, $text[$i], 10, $x, $y + (5 * $i));
+                        $pdf->Text($centeredX, $y + (5 * $i), $text[$i]);
+                    }
+
+                    $checkbox_text = '';
+                    $checkbox_x = 0;
+                    foreach ($checkedValues as $key => $value) {
+                        if ($value == 4) {
+                            $plus_y = 35;
+                            $signatureX = $x - 25;
+                            $signatureY = $y + 3 + (5 * $lineCount);
+                            $pdf->Image(public_path('storage/users/' . auth()->user()->signature), $signatureX, $signatureY, 65, 30);
+                        } else {
+                            $plus_y = 5;
+                        }
+                    }
+
+                    $i = 0;
+                    foreach ($checkedValues as $key => $value) {
+                        switch ($value) {
+                            case '1':
+                                $checkbox_text = '(' . $this->users->fullname . ')';
+                                break;
+                            case '2':
+                                $checkbox_text = str_replace('\n', '<br>', $this->permission_data->permission_name);
+                                break;
+                            case '3':
+                                $checkbox_text = convertDateToThai(date("Y-m-d"));
+                                break;
+                        }
+                        $text = explode("\n", $checkbox_text);
+                        if ($value != 4) {
+                            $stop = 0;
+                            foreach ($text as $text_) {
+                                if (count($text) > 1) {
+                                    if ($stop != 0) {
+                                        $i++;
+                                    }
+                                    $stop++;
+                                }
+                                $centeredX = $this->getCenteredPosition($pdf, $text_, 10, $x, $y + $plus_y + (5 * $lineCount) + (5 * ($key + $i)));
+                                $pdf->Text($centeredX, $y + $plus_y + (5 * $lineCount) + (5 * ($key + $i)), $text_);
+                            }
                         }
                     }
                 }
@@ -924,7 +1077,11 @@ class BookController extends Controller
                     'book_id' => $input['id'],
                     'position_id' => $update->position_id
                 ]);
-                $this->editPdf_signature($input['positionX'], $input['positionY'], $input['pages'], $update, $input['text'], $input['checkedValues']);
+                $this->editPdf_signature($input['positionX'], $input['positionY'], $input['pages'], $update, $input['text'], $input['checkedValues'], $input['positionPages']);
+                if ($input['positionPages'] == 2) {
+                    $update->new_pages = $update->new_pages + 1;
+                    $update->save();
+                }
                 $data['status'] = true;
                 $data['message'] = 'ลงบันทึกลายเซ็นเรียบร้อยแล้ว';
             }
@@ -1028,7 +1185,6 @@ class BookController extends Controller
 
     public function editNumberPDF($x, $y, $pages, $data)
     {
-        $pdf = new Fpdi();
         $filePath = public_path('/storage/' . $data->file);
 
         if (!file_exists($filePath)) {
@@ -1036,6 +1192,8 @@ class BookController extends Controller
         }
 
         $pdf = new Fpdi();
+        $pdf->setAutoPageBreak(false, 0);
+        $pdf->SetMargins(210, 0, 0);
 
         $pageCount = $pdf->setSourceFile($filePath);
 

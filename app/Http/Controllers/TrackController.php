@@ -62,20 +62,22 @@ class TrackController extends Controller
                     ->leftJoin('book_types', 'book_types.id', '=', 'books.inputBookregistNumber')
                     ->leftJoin('book_number_types', 'book_number_types.id', '=', 'books.selectBookcircular')
                     ->find($rec->book_id);
-                if ($rec->total <= 2) {
-                    $action = '<a href="' . url('/storage/' . $book->file) . '" target="_blank"><button class="btn btn-sm btn-outline-dark" title="เปิดไฟล์"><i class="fa fa-file-pdf-o"></i></button></a>
-                    <button title="ดูรายละเอียด" class="btn btn-sm btn-outline-dark modalDetail" data-id="' . Crypt::encrypt($book->id) . '"><i class="fa fa-search"></i></button>';
-                } else {
-                    $action = '<a href="' . url('/tracking/detail/' . Crypt::encrypt($book->id)) . '"><button class="btn btn-sm btn-outline-dark" title="ดูรายละเอียด"><i class="fa fa-search"></i></button></a>';
-                }
-                $info[] = [
-                    'number_regis' => $book->inputBookregistNumber,
-                    'type_regis' => $book->type_name,
-                    'number_book' => $book->inputBooknumberOrgStruc . '/' . $book->number_type . $book->inputBooknumberEnd,
-                    'title' => $book->inputSubject,
-                    'date' => DateThai($book->inputRecieveDate),
-                    'action' => $action
-                ];
+				if(!empty($book) > 0){
+					if ($rec->total <= 2) {
+						$action = '<a href="' . url('/storage/' . $book->file) . '" target="_blank"><button class="btn btn-sm btn-outline-dark" title="เปิดไฟล์"><i class="fa fa-file-pdf-o"></i></button></a>
+						<button title="ดูรายละเอียด" class="btn btn-sm btn-outline-dark modalDetail" data-id="' . Crypt::encrypt($book->id) . '"><i class="fa fa-search"></i></button>';
+					} else {
+						$action = '<a href="' . url('/tracking/detail/' . Crypt::encrypt($book->id)) . '"><button class="btn btn-sm btn-outline-dark" title="ดูรายละเอียด"><i class="fa fa-search"></i></button></a>';
+					}
+					$info[] = [
+						'number_regis' => $book->inputBookregistNumber,
+						'type_regis' => $book->type_name,
+						'number_book' => $book->inputBooknumberOrgStruc . '/' . $book->number_type . $book->inputBooknumberEnd,
+						'title' => $book->inputSubject,
+						'date' => DateThai($book->inputRecieveDate),
+						'action' => $action
+					];
+				}
             }
             $data = [
                 'data' => $info,
@@ -130,15 +132,17 @@ class TrackController extends Controller
                 $logs_main = $logs_main->where('position_id', $rec->position_id)
                     ->where('book_id', $id)
                     ->first();
-                $info[] = [
-                    'number_regis' => $logs_main->adminBookNumber,
-                    'title' => $book->inputSubject,
-                    'date' => DateTimeThai($logs_detail->datetime),
-                    'orgPath' => $logs_detail->position_name,
-                    'detail' => $logs_detail->detail,
-                    'action' => '<a href="' . url('/storage/' . $logs_main->file) . '" target="_blank"><button class="btn btn-sm btn-outline-dark" title="เปิดไฟล์"><i class="fa fa-file-pdf-o"></i></button></a>
-                    <button title="ดูรายละเอียด" class="btn btn-sm btn-outline-dark modalDetail" data-id="' . $rec->position_id . '"><i class="fa fa-search"></i></button>'
-                ];
+				if(!empty($logs_detail)){
+					$info[] = [
+						'number_regis' => $logs_main->adminBookNumber,
+						'title' => $book->inputSubject,
+						'date' => DateTimeThai($logs_detail->datetime),
+						'orgPath' => $logs_detail->position_name,
+						'detail' => $logs_detail->detail,
+						'action' => '<a href="' . url('/storage/' . $logs_main->file) . '" target="_blank"><button class="btn btn-sm btn-outline-dark" title="เปิดไฟล์"><i class="fa fa-file-pdf-o"></i></button></a>
+						<button title="ดูรายละเอียด" class="btn btn-sm btn-outline-dark modalDetail" data-id="' . $rec->position_id . '"><i class="fa fa-search"></i></button>'
+					];
+				}
             }
             $data = [
                 'data' => $info,

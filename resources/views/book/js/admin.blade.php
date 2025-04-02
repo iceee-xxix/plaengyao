@@ -20,7 +20,9 @@
             pageNumPending = null,
             scale = 1.5,
             pdfCanvas = document.getElementById('pdf-render'),
+            pdfCanvasInsert = document.getElementById('pdf-render-insert'),
             pdfCtx = pdfCanvas.getContext('2d'),
+            pdfCtxInsert = pdfCanvasInsert.getContext('2d'),
             markCanvas = document.getElementById('mark-layer'),
             markCtx = markCanvas.getContext('2d'),
             selectPage = document.getElementById('page-select');
@@ -109,7 +111,7 @@
         document.getElementById('prev').addEventListener('click', onPrevPage);
 
 
-        let markEventListener = null;
+        // let markEventListener = null;
         $('#add-stamp').click(function(e) {
             e.preventDefault();
             removeMarkListener();
@@ -135,6 +137,7 @@
                 drawMark(startX, startY, endX, endY);
                 $('#positionX').val(startX);
                 $('#positionY').val(startY);
+                $('#positionPages').val(1);
 
                 var text = '{{$position_name}}';
                 if (text.length >= 30) {
@@ -158,6 +161,51 @@
 
             var markCanvas = document.getElementById('mark-layer');
             markCanvas.addEventListener('click', markEventListener);
+
+            //เกษียณพับครึ่ง
+            markEventListenerInsert = function(e) {
+                var markCanvas = document.getElementById('mark-layer-insert');
+                var markCtx = markCanvas.getContext('2d');
+                var rect = markCanvas.getBoundingClientRect();
+                var startX = (e.clientX - rect.left);
+                var startY = (e.clientY - rect.top);
+
+                var endX = startX + 213;
+                var endY = startY + 115;
+
+                markCoordinates = {
+                    startX,
+                    startY,
+                    endX,
+                    endY
+                };
+                drawMarkInsert(startX, startY, endX, endY);
+                $('#positionX').val(startX);
+                $('#positionY').val(startY);
+                $('#positionPages').val(2);
+
+                var text = '{{$position_name}}';
+                if (text.length >= 30) {
+                    dynamicX = 5;
+                } else if (text.length >= 20) {
+                    dynamicX = 10;
+                } else if (text.length >= 15) {
+                    dynamicX = 60;
+                } else if (text.length >= 13) {
+                    dynamicX = 75;
+                } else if (text.length >= 10) {
+                    dynamicX = 70;
+                } else {
+                    dynamicX = 80;
+                }
+                drawTextHeaderClassicInsert('15px Sarabun', startX + dynamicX, startY + 25, text);
+                drawTextHeaderClassicInsert('12px Sarabun', startX + 8, startY + 55, 'รับที่..........................................................');
+                drawTextHeaderClassicInsert('12px Sarabun', startX + 8, startY + 80, 'วันที่.........เดือน......................พ.ศ.........');
+                drawTextHeaderClassicInsert('12px Sarabun', startX + 8, startY + 100, 'เวลา......................................................น.');
+            };
+
+            var markCanvasInsert = document.getElementById('mark-layer-insert');
+            markCanvasInsert.addEventListener('click', markEventListenerInsert);
         });
 
         $('#modalForm').on('submit', function(e) {
@@ -184,7 +232,6 @@
                         resetMarking();
                         removeMarkListener();
                         document.getElementById('signature-save').disabled = false;
-
                         markEventListener = function(e) {
                             var markCanvas = document.getElementById('mark-layer');
                             var markCtx = markCanvas.getContext('2d');
@@ -203,6 +250,7 @@
                             };
                             $('#positionX').val(startX);
                             $('#positionY').val(startY);
+                            $('#positionPages').val(1);
 
                             var text = $('#modal-text').val();
                             var lineBreakCount = countLineBreaks(text);
@@ -253,6 +301,76 @@
 
                         var markCanvas = document.getElementById('mark-layer');
                         markCanvas.addEventListener('click', markEventListener);
+
+                        markEventListenerInsert = function(e) {
+                            var markCanvas = document.getElementById('mark-layer-insert');
+                            var markCtx = markCanvas.getContext('2d');
+                            var rect = markCanvas.getBoundingClientRect();
+                            var startX = (e.clientX - rect.left);
+                            var startY = (e.clientY - rect.top);
+
+                            var endX = startX + 213;
+                            var endY = startY + 115;
+
+                            markCoordinates = {
+                                startX,
+                                startY,
+                                endX,
+                                endY
+                            };
+                            $('#positionX').val(startX);
+                            $('#positionY').val(startY);
+                            $('#positionPages').val(2);
+
+                            var text = $('#modal-text').val();
+                            var lineBreakCount = countLineBreaks(text);
+                            var checkedValues = $('input[type="checkbox"]:checked').map(function() {
+                                return $(this).val();
+                            }).get();
+                            drawMarkSignatureInsert(startX - 40, startY + (20 * lineBreakCount), endX, endY, checkedValues);
+                            drawTextHeaderSignatureInsert('15px Sarabun', startX, startY, text);
+
+                            var i = 0;
+                            var checkbox_text = '';
+                            var checkbox_x = 0;
+                            var plus_y = 20;
+                            checkedValues.forEach(element => {
+                                if (element == 4) {
+                                    plus_y = 160;
+                                }
+                            });
+
+                            checkedValues.forEach(element => {
+                                switch (element) {
+                                    case '1':
+                                        checkbox_text = `({{$users->fullname}})`;
+                                        break;
+                                    case '2':
+                                        checkbox_text = `{{$permission_data->permission_name}}`;
+                                        break;
+                                    case '3':
+                                        checkbox_text = `{{convertDateToThai(date("Y-m-d"))}}`;
+                                        break;
+                                }
+                                var lines = checkbox_text.split('\n');
+                                if (element != 4) {
+                                    drawTextHeaderSignatureInsert('15px Sarabun', startX, (startY + plus_y + (20 * lineBreakCount)) + (20 * i), checkbox_text);
+                                }
+                                if (lines.length > 1) {
+                                    var stop = 0;
+                                    lines.forEach(element => {
+                                        if (stop != 0) {
+                                            i++;
+                                        }
+                                        stop++;
+                                    });
+                                }
+                                i++;
+                            });
+                        };
+
+                        var markCanvasInsert = document.getElementById('mark-layer-insert');
+                        markCanvasInsert.addEventListener('click', markEventListenerInsert);
                     } else {
                         $('#exampleModal').modal('hide');
                         Swal.fire("", response.message, "error");
@@ -267,6 +385,11 @@
         }
         // ฟังก์ชันในการวาดกากบาทเล็กๆ ที่มุมขวาบน
         function drawMark(startX, startY, endX, endY) {
+            //เคลียร์กรอบเดิมของหน้าเกษียณพับครึ่ง
+            var markCanvas = document.getElementById('mark-layer-insert');
+            var markCtx = markCanvas.getContext('2d');
+            markCtx.clearRect(0, 0, markCanvas.width, markCanvas.height);
+
             var markCanvas = document.getElementById('mark-layer');
             var markCtx = markCanvas.getContext('2d');
             markCtx.clearRect(0, 0, markCanvas.width, markCanvas.height);
@@ -304,6 +427,10 @@
         }
 
         function drawMarkSignature(startX, startY, endX, endY, checkedValues) {
+            var markCanvas = document.getElementById('mark-layer-insert');
+            var markCtx = markCanvas.getContext('2d');
+            markCtx.clearRect(0, 0, markCanvas.width, markCanvas.height);
+
             var markCanvas = document.getElementById('mark-layer');
             var markCtx = markCanvas.getContext('2d');
             markCtx.clearRect(0, 0, markCanvas.width, markCanvas.height);
@@ -341,6 +468,7 @@
             markCtx.fillStyle = "blue";
             markCtx.fillText(text, startX, startY);
         }
+
         function drawTextHeader(type, startX, startY, text) {
             var markCanvas = document.getElementById('mark-layer');
             var markCtx = markCanvas.getContext('2d');
@@ -372,9 +500,113 @@
                 markCtx.fillText(lines[i], centeredX, startY + (i * lineHeight)); // 🔴 เปลี่ยน startX → centeredX
             }
         }
+
+        function drawMarkInsert(startX, startY, endX, endY) {
+            //เคลียร์กรอบเดิมของหน้าหนังสือ
+            var markCanvas = document.getElementById('mark-layer');
+            var markCtx = markCanvas.getContext('2d');
+            markCtx.clearRect(0, 0, markCanvas.width, markCanvas.height);
+
+            var markCanvas = document.getElementById('mark-layer-insert');
+            var markCtx = markCanvas.getContext('2d');
+            markCtx.clearRect(0, 0, markCanvas.width, markCanvas.height);
+
+            markCtx.beginPath();
+            markCtx.rect(startX, startY, endX - startX, endY - startY);
+            markCtx.lineWidth = 1;
+            markCtx.strokeStyle = 'blue';
+            markCtx.stroke();
+
+            var crossSize = 10;
+            markCtx.beginPath();
+            markCtx.moveTo(endX - crossSize, startY + crossSize);
+            markCtx.lineTo(endX, startY);
+            markCtx.moveTo(endX, startY + crossSize);
+            markCtx.lineTo(endX - crossSize, startY);
+            markCtx.lineWidth = 2;
+            markCtx.strokeStyle = 'red';
+            markCtx.stroke();
+
+            markCanvas.addEventListener('click', function(event) {
+                var rect = markCanvas.getBoundingClientRect();
+                var clickX = event.clientX - rect.left;
+                var clickY = event.clientY - rect.top;
+
+                if (
+                    clickX >= endX - crossSize && clickX <= endX &&
+                    clickY >= startY && clickY <= startY + crossSize
+                ) {
+                    removeMarkListener();
+                    var markCtx = markCanvas.getContext('2d');
+                    markCtx.clearRect(0, 0, markCanvas.width, markCanvas.height); // เคลียร์แคนวาส
+                }
+            });
+        }
+
+        function drawMarkSignatureInsert(startX, startY, endX, endY, checkedValues) {
+            var markCanvas = document.getElementById('mark-layer');
+            var markCtx = markCanvas.getContext('2d');
+            markCtx.clearRect(0, 0, markCanvas.width, markCanvas.height);
+
+            var markCanvas = document.getElementById('mark-layer-insert');
+            var markCtx = markCanvas.getContext('2d');
+            markCtx.clearRect(0, 0, markCanvas.width, markCanvas.height);
+
+            checkedValues.forEach(element => {
+                if (element == 4) {
+                    var img = new Image();
+                    img.src = signature;
+                    img.onload = function() {
+                        var imgWidth = 240;
+                        var imgHeight = 130;
+
+                        var centeredX = (startX + 50) - (imgWidth / 2);
+                        var centeredY = (startY + 60) - (imgHeight / 2);
+
+                        markCtx.drawImage(img, centeredX, centeredY, imgWidth, imgHeight);
+
+                        imgData = {
+                            x: centeredX,
+                            y: centeredY,
+                            width: imgWidth,
+                            height: imgHeight
+                        };
+                    }
+                }
+            });
+        }
+
+        function drawTextHeaderClassicInsert(type, startX, startY, text) {
+            var markCanvas = document.getElementById('mark-layer-insert');
+            var markCtx = markCanvas.getContext('2d');
+
+            markCtx.font = type;
+            markCtx.fillStyle = "blue";
+            markCtx.fillText(text, startX, startY);
+        }
+
+        function drawTextHeaderSignatureInsert(type, startX, startY, text) {
+            var markCanvas = document.getElementById('mark-layer-insert');
+            var markCtx = markCanvas.getContext('2d');
+
+            markCtx.font = type;
+            markCtx.fillStyle = "blue";
+
+            var lines = text.split('\n');
+            var lineHeight = 20;
+
+            for (var i = 0; i < lines.length; i++) {
+                // 🔴 คำนวณความกว้างของแต่ละบรรทัด
+                var textWidth = markCtx.measureText(lines[i]).width;
+                var centeredX = startX - (textWidth / 2);
+
+                markCtx.fillText(lines[i], centeredX, startY + (i * lineHeight)); // 🔴 เปลี่ยน startX → centeredX
+            }
+        }
     }
 
     let markEventListener = null;
+    let markEventListenerInsert = null;
 
     function openPdf(url, id, status, type, is_check = '', number_id, position_id) {
         $('.btn-default').hide();
@@ -391,6 +623,7 @@
         $('#users_id').val('');
         document.getElementById('add-stamp').disabled = true;
         if (status == 3) {
+            $('#insert-pages').show();
             $('#add-stamp').show();
             $('#save-stamp').show();
         }
@@ -399,6 +632,7 @@
                 document.getElementById('send-signature').disabled = false;
                 $('#send-signature').show();
                 $('#signature-save').show();
+                $('#insert-pages').show();
             } else {
                 $('#sendTo').show();
             }
@@ -421,24 +655,26 @@
         removeMarkListener();
     }
 
-    function resetMarking() {
-        var markCanvas = document.getElementById('mark-layer');
-        var markCtx = markCanvas.getContext('2d');
-        markCtx.clearRect(0, 0, markCanvas.width, markCanvas.height);
-    }
-
     function removeMarkListener() {
         var markCanvas = document.getElementById('mark-layer');
+        var markCanvasInsert = document.getElementById('mark-layer-insert');
         if (markEventListener) {
             markCanvas.removeEventListener('click', markEventListener);
             markEventListener = null;
+        }
+        if (markEventListenerInsert) {
+            markCanvasInsert.removeEventListener('click', markEventListenerInsert);
+            markEventListenerInsert = null;
         }
     }
 
     function resetMarking() {
         var markCanvas = document.getElementById('mark-layer');
+        var markCanvasInsert = document.getElementById('mark-layer-insert');
         var markCtx = markCanvas.getContext('2d');
+        var markCtxInsert = markCanvasInsert.getContext('2d');
         markCtx.clearRect(0, 0, markCanvas.width, markCanvas.height);
+        markCtxInsert.clearRect(0, 0, markCanvasInsert.width, markCanvasInsert.height);
     }
 
     selectPageTable.addEventListener('change', function() {
@@ -552,6 +788,7 @@
         var id = $('#id').val();
         var positionX = $('#positionX').val();
         var positionY = $('#positionY').val();
+        var positionPages = $('#positionPages').val();
         var pages = $('#page-select').find(":selected").val();
         if (id != '' && positionX != '' && positionY != '') {
             Swal.fire({
@@ -569,6 +806,7 @@
                             id: id,
                             positionX: positionX,
                             positionY: positionY,
+                            positionPages: positionPages,
                             pages: pages
                         },
                         dataType: "json",
@@ -760,6 +998,7 @@
         var positionX = $('#positionX').val();
         var positionY = $('#positionY').val();
         var pages = $('#page-select').find(":selected").val();
+        var positionPages = $('#positionPages').val();
         var text = $('#modal-text').val();
         var checkedValues = $('input[type="checkbox"]:checked').map(function() {
             return $(this).val();
@@ -780,6 +1019,7 @@
                             id: id,
                             positionX: positionX,
                             positionY: positionY,
+                            positionPages: positionPages,
                             pages: pages,
                             text: text,
                             checkedValues: checkedValues
@@ -808,62 +1048,41 @@
     $(document).ready(function() {
         $('#send-signature').click(function(e) {
             e.preventDefault();
-            $('#exampleModal').modal('show');
         });
-        $('#exampleModal').on('show.bs.modal', function(event) {
-            $('input[type="password"]').val('');
-            $('textarea').val('');
+        $('#insert-pages').click(function(e) {
+            e.preventDefault();
+            $('#insert_tab').show();
         });
+
+        async function createAndRenderPDF() {
+            const pdfDoc = await PDFLib.PDFDocument.create();
+            pdfDoc.addPage([600, 800]);
+            const pdfBytes = await pdfDoc.save();
+
+            const loadingTask = pdfjsLib.getDocument({
+                data: pdfBytes
+            });
+            loadingTask.promise.then(pdf => pdf.getPage(1))
+                .then(page => {
+                    const scale = 1.5;
+                    const viewport = page.getViewport({
+                        scale
+                    });
+
+                    const canvas = document.getElementById("pdf-render-insert");
+                    const context = canvas.getContext("2d");
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+
+                    const renderContext = {
+                        canvasContext: context,
+                        viewport: viewport
+                    };
+                    return page.render(renderContext).promise;
+                }).catch(error => console.error("Error rendering PDF:", error));
+        }
+
+        createAndRenderPDF();
     });
 </script>
-<div class="modal modal-lg fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <form id="modalForm">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">เกษียณหนังสือ</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3 row">
-                        <label for="inputPassword" class="col-sm-2 col-form-label"><span class="req">*</span>ข้อความเกษียน :</label>
-                        <div class="col-sm-10">
-                            <textarea rows="4" class="form-control" name="modal-text" id="modal-text"></textarea>
-                        </div>
-                    </div>
-                    <div class="mb-3 row">
-                        <div class="col-2">
-                        </div>
-                        <div class="col-sm-10 d-flex justify-content-center text-center">
-                            ({{$users->fullname}})<br>
-                            {{$permission_data->permission_name}}<br>
-                            {{convertDateToThai(date("Y-m-d"))}}
-                        </div>
-                    </div>
-                    <div class="mb-3 row">
-                        <label for="inputPassword" class="col-sm-2 col-form-label"><span class="req">*</span>รหัสผ่านเกษียน :</label>
-                        <div class="col-sm-10">
-                            <input type="password" class="form-control" id="modal-Password" name="modal-Password">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <label for="inputPassword" class="col-sm-2 col-form-label"><span class="req">*</span>แสดงผล :</label>
-                        <div class="col-sm-10 d-flex align-items-center">
-                            <ul class="list-group list-group-horizontal">
-                                <li class="list-group-item"><input class="form-check-input me-1" type="checkbox" name="modal-check[]" value="1" checked>ชื่อ-นามสกุล</li>
-                                <li class="list-group-item"><input class="form-check-input me-1" type="checkbox" name="modal-check[]" value="2" checked>ตำแหน่ง</li>
-                                <li class="list-group-item"><input class="form-check-input me-1" type="checkbox" name="modal-check[]" value="3" checked>วันที่</li>
-                                <li class="list-group-item"><input class="form-check-input me-1" type="checkbox" name="modal-check[]" value="4" checked>ลายเซ็น</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" id="submit-modal" class="btn btn-primary">ตกลง</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 @endsection

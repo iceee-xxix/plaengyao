@@ -20,7 +20,9 @@
             pageNumPending = null,
             scale = 1.5,
             pdfCanvas = document.getElementById('pdf-render'),
+            pdfCanvasInsert = document.getElementById('pdf-render-insert'),
             pdfCtx = pdfCanvas.getContext('2d'),
+            pdfCtxInsert = pdfCanvasInsert.getContext('2d'),
             markCanvas = document.getElementById('mark-layer'),
             markCtx = markCanvas.getContext('2d'),
             selectPage = document.getElementById('page-select');
@@ -109,7 +111,8 @@
         document.getElementById('prev').addEventListener('click', onPrevPage);
 
 
-        let markEventListener = null;
+        // let markEventListener = null;
+        // let markEventListenerInsert = null;
         $('#add-stamp').click(function(e) {
             e.preventDefault();
             removeMarkListener();
@@ -135,6 +138,7 @@
                 drawMark(startX, startY, endX, endY);
                 $('#positionX').val(startX);
                 $('#positionY').val(startY);
+                $('#positionPages').val(1);
 
                 drawTextHeader('15px Sarabun', startX + 3, startY + 25, 'องค์การบริหารส่วนตำบลแปลงยาว');
                 drawTextHeader('12px Sarabun', startX + 8, startY + 55, 'รับที่..........................................................');
@@ -144,7 +148,38 @@
 
             var markCanvas = document.getElementById('mark-layer');
             markCanvas.addEventListener('click', markEventListener);
+            //เกษียณพับครึ่ง
+            markEventListenerInsert = function(e) {
+                var markCanvas = document.getElementById('mark-layer-insert');
+                var markCtx = markCanvas.getContext('2d');
+                var rect = markCanvas.getBoundingClientRect();
+                var startX = (e.clientX - rect.left);
+                var startY = (e.clientY - rect.top);
+
+                var endX = startX + 213;
+                var endY = startY + 115;
+
+                markCoordinates = {
+                    startX,
+                    startY,
+                    endX,
+                    endY
+                };
+                drawMarkInsert(startX, startY, endX, endY);
+                $('#positionX').val(startX);
+                $('#positionY').val(startY);
+                $('#positionPages').val(2);
+
+                drawTextHeaderInsert('15px Sarabun', startX + 3, startY + 25, 'องค์การบริหารส่วนตำบลแปลงยาว');
+                drawTextHeaderInsert('12px Sarabun', startX + 8, startY + 55, 'รับที่..........................................................');
+                drawTextHeaderInsert('12px Sarabun', startX + 8, startY + 80, 'วันที่.........เดือน......................พ.ศ.........');
+                drawTextHeaderInsert('12px Sarabun', startX + 8, startY + 100, 'เวลา......................................................น.');
+            };
+
+            var markCanvasInsert = document.getElementById('mark-layer-insert');
+            markCanvasInsert.addEventListener('click', markEventListenerInsert);
         });
+
         $('#number-stamp').click(function(e) {
             e.preventDefault();
             removeMarkListener();
@@ -179,16 +214,68 @@
 
         function removeMarkListener() {
             var markCanvas = document.getElementById('mark-layer');
+            var markCanvasInsert = document.getElementById('mark-layer-insert');
             if (markEventListener) {
                 markEventListener = null;
             }
+            if (markEventListenerInsert) {
+                markEventListenerInsert = null;
+            }
             $('#positionX').val('');
             $('#positionY').val('');
+            $('#positionPages').val('');
         }
 
         // ฟังก์ชันในการวาดกากบาทเล็กๆ ที่มุมขวาบน
         function drawMark(startX, startY, endX, endY) {
+            //เคลียร์กรอบเดิมของหน้าเกษียณพับครึ่ง
+            var markCanvas = document.getElementById('mark-layer-insert');
+            var markCtx = markCanvas.getContext('2d');
+            markCtx.clearRect(0, 0, markCanvas.width, markCanvas.height);
+
             var markCanvas = document.getElementById('mark-layer');
+            var markCtx = markCanvas.getContext('2d');
+            markCtx.clearRect(0, 0, markCanvas.width, markCanvas.height);
+
+            markCtx.beginPath();
+            markCtx.rect(startX, startY, endX - startX, endY - startY);
+            markCtx.lineWidth = 1;
+            markCtx.strokeStyle = 'blue';
+            markCtx.stroke();
+
+            var crossSize = 10;
+            markCtx.beginPath();
+            markCtx.moveTo(endX - crossSize, startY + crossSize);
+            markCtx.lineTo(endX, startY);
+            markCtx.moveTo(endX, startY + crossSize);
+            markCtx.lineTo(endX - crossSize, startY);
+            markCtx.lineWidth = 2;
+            markCtx.strokeStyle = 'red';
+            markCtx.stroke();
+
+            markCanvas.addEventListener('click', function(event) {
+                var rect = markCanvas.getBoundingClientRect();
+                var clickX = event.clientX - rect.left;
+                var clickY = event.clientY - rect.top;
+
+                if (
+                    clickX >= endX - crossSize && clickX <= endX &&
+                    clickY >= startY && clickY <= startY + crossSize
+                ) {
+                    removeMarkListener();
+                    var markCtx = markCanvas.getContext('2d');
+                    markCtx.clearRect(0, 0, markCanvas.width, markCanvas.height); // เคลียร์แคนวาส
+                }
+            });
+        }
+
+        function drawMarkInsert(startX, startY, endX, endY) {
+            //เคลียร์กรอบเดิมของหน้าหนังสือ
+            var markCanvas = document.getElementById('mark-layer');
+            var markCtx = markCanvas.getContext('2d');
+            markCtx.clearRect(0, 0, markCanvas.width, markCanvas.height);
+
+            var markCanvas = document.getElementById('mark-layer-insert');
             var markCtx = markCanvas.getContext('2d');
             markCtx.clearRect(0, 0, markCanvas.width, markCanvas.height);
 
@@ -263,9 +350,19 @@
             markCtx.fillStyle = "blue";
             markCtx.fillText(text, startX, startY);
         }
+
+        function drawTextHeaderInsert(type, startX, startY, text) {
+            var markCanvas = document.getElementById('mark-layer-insert');
+            var markCtx = markCanvas.getContext('2d');
+
+            markCtx.font = type;
+            markCtx.fillStyle = "blue";
+            markCtx.fillText(text, startX, startY);
+        }
     }
 
     let markEventListener = null;
+    let markEventListenerInsert = null;
 
     function openPdf(url, id, status, type, is_check = '', number_id, position_id) {
         $('.btn-default').hide();
@@ -287,6 +384,7 @@
             if (status == 1) {
                 $('#add-stamp').show();
                 $('#save-stamp').show();
+                $('#insert-pages').show();
             }
             if (status == 2) {
                 $('#send-to').show();
@@ -328,24 +426,26 @@
         $('#id').val(id);
     }
 
-    function resetMarking() {
-        var markCanvas = document.getElementById('mark-layer');
-        var markCtx = markCanvas.getContext('2d');
-        markCtx.clearRect(0, 0, markCanvas.width, markCanvas.height);
-    }
-
     function removeMarkListener() {
         var markCanvas = document.getElementById('mark-layer');
+        var markCanvasInsert = document.getElementById('mark-layer-insert');
         if (markEventListener) {
             markCanvas.removeEventListener('click', markEventListener);
             markEventListener = null;
+        }
+        if (markEventListenerInsert) {
+            markCanvasInsert.removeEventListener('click', markEventListenerInsert);
+            markEventListenerInsert = null;
         }
     }
 
     function resetMarking() {
         var markCanvas = document.getElementById('mark-layer');
+        var markCanvasInsert = document.getElementById('mark-layer-insert');
         var markCtx = markCanvas.getContext('2d');
+        var markCtxInsert = markCanvasInsert.getContext('2d');
         markCtx.clearRect(0, 0, markCanvas.width, markCanvas.height);
+        markCtxInsert.clearRect(0, 0, markCanvasInsert.width, markCanvasInsert.height);
     }
 
     selectPageTable.addEventListener('change', function() {
@@ -453,6 +553,7 @@
         var id = $('#id').val();
         var positionX = $('#positionX').val();
         var positionY = $('#positionY').val();
+        var positionPages = $('#positionPages').val();
         var pages = $('#page-select').find(":selected").val();
         if (id != '' && positionX != '' && positionY != '') {
             Swal.fire({
@@ -470,6 +571,7 @@
                             id: id,
                             positionX: positionX,
                             positionY: positionY,
+                            positionPages: positionPages,
                             pages: pages
                         },
                         dataType: "json",
@@ -704,6 +806,42 @@
         } else {
             alert('Please select a file!');
         }
+    });
+    $('#insert-pages').click(function(e) {
+        e.preventDefault();
+        $('#insert_tab').show();
+    });
+
+    $(document).ready(function() {
+        async function createAndRenderPDF() {
+            const pdfDoc = await PDFLib.PDFDocument.create();
+            pdfDoc.addPage([600, 800]);
+            const pdfBytes = await pdfDoc.save();
+
+            const loadingTask = pdfjsLib.getDocument({
+                data: pdfBytes
+            });
+            loadingTask.promise.then(pdf => pdf.getPage(1))
+                .then(page => {
+                    const scale = 1.5;
+                    const viewport = page.getViewport({
+                        scale
+                    });
+
+                    const canvas = document.getElementById("pdf-render-insert");
+                    const context = canvas.getContext("2d");
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+
+                    const renderContext = {
+                        canvasContext: context,
+                        viewport: viewport
+                    };
+                    return page.render(renderContext).promise;
+                }).catch(error => console.error("Error rendering PDF:", error));
+        }
+
+        createAndRenderPDF();
     });
 </script>
 
