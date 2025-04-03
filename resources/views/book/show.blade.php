@@ -117,6 +117,7 @@
             $text = '';
             if ($rec->status == 14) {
                 $text = '(เวียนหนังสือ)';
+                $color = 'success';
             }
             ?>
             <a href="javascript:void(0)" onclick="{{$action}}">
