@@ -95,7 +95,7 @@ class DirectoryController extends Controller
         ];
         $input = $request->input();
         if (!empty($input['id'])) {
-            $query = Directory_log::select('books.*', 'book_number_types.name as type_name', 'log_status_books.file')
+            $query = Directory_log::select('books.*', 'book_number_types.name as type_name', 'directory_logs.file')
                 ->leftJoin('books', 'books.id', '=', 'directory_logs.book_id')
                 ->leftJoin('book_number_types', 'book_number_types.id', '=', 'books.selectBookcircular')
                 ->leftJoin('log_status_books', 'log_status_books.id', '=', 'directory_logs.logs_id');
@@ -112,7 +112,7 @@ class DirectoryController extends Controller
                     'number_regis' => $rec->inputBookregistNumber,
                     'type_regis' => $rec->type_name,
                     'number_book' => $rec->inputBooknumberOrgStruc . '/' . $rec->type_name . $rec->inputBooknumberEnd,
-                    'title' => '<a href="' . url('storage/' . $rec->file) . '" target="_blank">' . $rec->inputSubject . '</a>',
+                    'title' => '<a href="' . url('storage/directory/' . $input['id'] . '/' . $rec->file) . '" target="_blank">' . $rec->inputSubject . '</a>',
                     'date' => DateThai($rec->inputRecieveDate),
                 ];
             }

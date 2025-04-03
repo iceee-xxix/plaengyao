@@ -1237,10 +1237,17 @@ class BookController extends Controller
                     'book_id' => $input['id'],
                     'position_id' => $update->position_id
                 ]);
+                $oldPath = $update->file;  // ไฟล์ต้นทาง
+                $file = str_replace($update->position_id . '/uploads/', '', $update->file);
+                $newPath = 'directory/' . $update->position_id . '/' . $file;  // ไฟล์ปลายทาง
+                if (Storage::exists($oldPath)) {
+                    Storage::copy($oldPath, $newPath);
+                }
                 $directorylogs = new Directory_log;
                 $directorylogs->book_id = $input['id'];
                 $directorylogs->position_id = $update->position_id;
                 $directorylogs->logs_id = $update->id;
+                $directorylogs->file = $file;
                 $directorylogs->created_at = date('Y-m-d H:i:s');
                 $directorylogs->created_by = auth()->user()->id;
                 $directorylogs->updated_at = date('Y-m-d H:i:s');
