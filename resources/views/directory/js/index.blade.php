@@ -19,10 +19,12 @@
         //     }
         // }
         $('#example').DataTable().ajax.reload(null, false);
+        Swal.showLoading();
     }
     $('#search').click(function(e) {
         e.preventDefault();
         $('#example').DataTable().ajax.reload(null, false);
+        Swal.showLoading();
     });
 
     $(document).ready(function() {
@@ -38,6 +40,9 @@
                 headers: {
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
+                complete: function(data) {
+                    Swal.close();
+                }
             },
             language: {
                 url: "https://cdn.datatables.net/plug-ins/1.10.21/i18n/Thai.json"

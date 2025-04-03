@@ -396,6 +396,10 @@ class BookController extends Controller
                     'book_id' => $id
                 ]);
                 $this->editPdf($positionX, $positionY, $pages, $book, $positionPages);
+                $filePath =  'uploads/' . rand(1, 10000) . time() . '.pdf';
+                rename(storage_path('app/public/' . $book->file), storage_path('app/public/' . $filePath));
+                $update->file = $filePath;
+                $update->save();
                 $data['status'] = true;
                 $data['message'] = 'ลงบันทึกเวลาเรียบร้อยแล้ว';
             }
@@ -543,10 +547,11 @@ class BookController extends Controller
             $update->updated_by = $this->users->id;
             $update->updated_at = date('Y-m-d H:i:s');
             foreach ($position_id as $value) {
-                $filePath = storage_path('app/public/' . auth()->user()->position_id . '/' . $book->file);
                 $logs_file = Log_status_book::where('status', 3.5)->where('position_id', auth()->user()->position_id)->where('book_id', $book->id)->first();
+                $filePath = storage_path('app/public/' . $logs_file->file);
                 $insert = new Log_status_book();
-                $destinationDirectory = storage_path('app/public/' . $value . '/' . $book->file);
+                $file = str_replace(auth()->user()->position_id . '/' . 'uploads/', '', $logs_file->file);
+                $destinationDirectory = storage_path('app/public/' . $value . '/uploads/' . $file);
                 if (!File::exists(storage_path('app/public/' . $value . '/uploads'))) {
                     File::makeDirectory(storage_path('app/public/' . $value . '/uploads'), 0777, true); // สร้างโฟลเดอร์ใหม่
                 }
@@ -556,7 +561,7 @@ class BookController extends Controller
                 $insert->book_id = $id;
                 $insert->status = 3;
                 $insert->datetime = date('Y-m-d H:i:s');
-                $insert->file = $value . '/' . $book->file;
+                $insert->file = $value . '/uploads/' . $file;
                 $insert->position_id = $value;
                 $insert->new_pages = $logs_file->new_pages;
                 if ($insert->save()) {
@@ -619,6 +624,10 @@ class BookController extends Controller
                     'book_id' => $id,
                     'position_id' => $update->position_id
                 ]);
+                $filePath =  $this->position_id . '/uploads/' . rand(1, 10000) . time() . '.pdf';
+                rename(storage_path('app/public/' . $update->file), storage_path('app/public/' . $filePath));
+                $update->file = $filePath;
+                $update->save();
                 $data['status'] = true;
                 $data['message'] = 'ลงบันทึกเวลาเรียบร้อยแล้ว';
             }
@@ -874,6 +883,10 @@ class BookController extends Controller
                     $update->new_pages = $update->new_pages + 1;
                     $update->save();
                 }
+                $filePath = $this->position_id . '/uploads/' . rand(1, 10000) . time() . '.pdf';
+                rename(storage_path('app/public/' . $update->file), storage_path('app/public/' . $filePath));
+                $update->file = $filePath;
+                $update->save();
                 $data['status'] = true;
                 $data['message'] = 'ลงบันทึกเกษียณหนังสือเรียบร้อย';
             }
@@ -1083,6 +1096,10 @@ class BookController extends Controller
                     $update->new_pages = $update->new_pages + 1;
                     $update->save();
                 }
+                $filePath = $update->position_id . '/uploads/' . rand(1, 10000) . time() . '.pdf';
+                rename(storage_path('app/public/' . $update->file), storage_path('app/public/' . $filePath));
+                $update->file = $filePath;
+                $update->save();
                 $data['status'] = true;
                 $data['message'] = 'ลงบันทึกลายเซ็นเรียบร้อยแล้ว';
             }
