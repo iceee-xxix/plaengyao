@@ -20,6 +20,10 @@
         // }
         $('#example').DataTable().ajax.reload(null, false);
     }
+    $('#search').click(function(e) {
+        e.preventDefault();
+        $('#example').DataTable().ajax.reload(null, false);
+    });
 
     $(document).ready(function() {
         $('#example').DataTable({

@@ -95,12 +95,17 @@ class DirectoryController extends Controller
         ];
         $input = $request->input();
         if (!empty($input['id'])) {
-            $item = Directory_log::select('books.*', 'book_number_types.name as type_name', 'log_status_books.file')
+            $query = Directory_log::select('books.*', 'book_number_types.name as type_name', 'log_status_books.file')
                 ->leftJoin('books', 'books.id', '=', 'directory_logs.book_id')
                 ->leftJoin('book_number_types', 'book_number_types.id', '=', 'books.selectBookcircular')
-                ->leftJoin('log_status_books', 'log_status_books.id', '=', 'directory_logs.logs_id')
-                ->where('directory_logs.position_id', $input['id'])
-                ->get();
+                ->leftJoin('log_status_books', 'log_status_books.id', '=', 'directory_logs.logs_id');
+            if (!empty($input['keyword'])) {
+                $query = $query->whereRaw('(inputSubject like "%' . $input['keyword'] . '%"')
+                    ->orWhereRaw('inputBookregistNumber like "%' . $input['keyword'] . '%"')
+                    ->orWhereRaw('inputBooknumberOrgStruc like "%' . $input['keyword'] . '%"')
+                    ->orWhereRaw('inputBooknumberEnd like "%' . $input['keyword'] . '%")');
+            }
+            $item = $query->where('directory_logs.position_id', $input['id'])->get();
             $info = array();
             foreach ($item as $rec) {
                 $info[] = [
