@@ -65,13 +65,13 @@
 <div class="row">
     <div class="col-12">
         <div class="row">
-            <div class="col-3">
+            <div class="col-4">
                 <div class="input-group mb-3">
                     <input type="text" id="inputSearch" class="form-control border-dark" placeholder="ค้นหา">
                     <button class="btn btn-outline-dark" type="button" id="search_btn">Button</button>
                 </div>
             </div>
-            <div class="col-9">
+            <div class="col-8">
                 <div class="row">
                     <div class="col-6 d-flex align-items-center">
                         <label style="color:red" id="txt_label"></label>
@@ -92,6 +92,7 @@
                         <button class="btn btn-outline-dark btn-sm hidden btn-default" style="margin-right: 5px;font-size: 15px;" id="manager-save" title="บันทึกข้อมูล" disabled><i class="fa fa-floppy-o"></i></button>
                         <button class="btn btn-outline-dark btn-sm hidden btn-default" style="margin-right: 5px;font-size: 15px;" id="manager-send" title="แทงเรื่อง"><i class="fa fa-send-o"></i></button>
                         <button class="btn btn-outline-dark btn-sm hidden btn-default" style="margin-right: 5px;font-size: 15px;" id="send-save" title="บันทึกข้อมูล" disabled><i class="fa fa-floppy-o"></i></button>
+                        <button class="btn btn-outline-dark btn-sm hidden btn-default" style="margin-right: 5px;font-size: 15px;" id="directory-save" title="จัดเก็บไฟล์" disabled><i class="fa fa-folder-o"></i></button>
                         <button class="btn btn-outline-dark btn-sm" style="margin-right: 5px;font-size: 5px;" id="prev"><i class="fa fa-arrow-circle-left"></i></button>
                         <select id="page-select" class="border-dark"></select>
                         <button class="btn btn-outline-dark btn-sm" style="margin-left: 5px;font-size: 5px;" id="next"><i class="fa fa-arrow-circle-right"></i></button>
@@ -100,7 +101,7 @@
             </div>
         </div>
     </div>
-    <div class="col-3">
+    <div class="col-4">
         <div id="box-card-item" style="height: 808px;overflow: auto;">
             @foreach ($book as $rec)
             <?php
@@ -141,7 +142,7 @@
             <button class="btn btn-outline-dark btn-sm" style="margin-left: 5px;font-size: 5px;" id="nextPage"><i class="fa fa-arrow-circle-right"></i></button>
         </div>
     </div>
-    <div class="col-9" id="div-showPdf">
+    <div class="col-8" id="div-showPdf">
         <ul class="nav nav-tabs" id="myTab" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active text-black" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">หนังสือ</button>
@@ -171,7 +172,7 @@
         </div>
 
     </div>
-    <div class="col-9 hidden" id="div-uploadPdf">
+    <div class="col-8 hidden" id="div-uploadPdf">
         <div class="col-12" id="uploadDiv">
             <div style="height: 803px; overflow-y: auto;display: grid;position: relative;">
                 <div id="upload-area">

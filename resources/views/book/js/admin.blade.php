@@ -228,7 +228,7 @@
                         $('#exampleModal').modal('hide');
                         setTimeout(() => {
                             swal.close();
-                        }, 1000);
+                        }, 1500);
                         resetMarking();
                         removeMarkListener();
                         document.getElementById('signature-save').disabled = false;
@@ -651,6 +651,10 @@
             $('#send-to').show();
             $('#send-save').show();
         }
+        if (status == 14) {
+            document.getElementById('directory-save').disabled = false;
+            $('#directory-save').show();
+        }
         resetMarking();
         removeMarkListener();
     }
@@ -818,7 +822,7 @@
                                 Swal.fire("", "บันทึกเรียบร้อย", "success");
                                 setTimeout(() => {
                                     location.reload();
-                                }, 1000);
+                                }, 1500);
                             } else {
                                 Swal.fire("", "บันทึกไม่สำเร็จ", "error");
                             }
@@ -880,7 +884,7 @@
                                 Swal.fire("", "แทงเรื่องเรียบร้อยแล้ว", "success");
                                 setTimeout(() => {
                                     location.reload();
-                                }, 1000);
+                                }, 1500);
                             } else {
                                 Swal.fire("", "แทงเรื่องไม่สำเร็จ", "error");
                             }
@@ -982,7 +986,7 @@
                                 Swal.fire("", "แทงเรื่องเรียบร้อยแล้ว", "success");
                                 setTimeout(() => {
                                     location.reload();
-                                }, 1000);
+                                }, 1500);
                             } else {
                                 Swal.fire("", "แทงเรื่องไม่สำเร็จ", "error");
                             }
@@ -1033,7 +1037,7 @@
                                 Swal.fire("", "ลงบันทึกเกษียณหนังสือเรียบร้อย", "success");
                                 setTimeout(() => {
                                     location.reload();
-                                }, 1000);
+                                }, 1500);
                             } else {
                                 Swal.fire("", "บันทึกไม่สำเร็จ", "error");
                             }
@@ -1083,6 +1087,44 @@
         }
 
         createAndRenderPDF();
+    });
+    $('#directory-save').click(function(e) {
+        e.preventDefault();
+        Swal.fire({
+            title: "",
+            text: "ท่านต้องการจัดเก็บไฟล์นี้ใช่หรือไม่",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            cancelButtonText: "ยกเลิก",
+            confirmButtonText: "จัดเก็บ"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                var id = $('#id').val();
+                $.ajax({
+                    type: "post",
+                    url: "/book/directory_save",
+                    data: {
+                        id: id,
+                    },
+                    dataType: "json",
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        if (response.status) {
+                            Swal.fire("", "จัดเก็บเรียบร้อยแล้ว", "success");
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            Swal.fire("", "จัดเก็บไม่สำเร็จ", "error");
+                        }
+                    }
+                });
+            }
+        });
     });
 </script>
 @endsection

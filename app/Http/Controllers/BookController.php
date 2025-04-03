@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Book;
+use App\Models\Directory_log;
 use App\Models\Log_active_book;
 use App\Models\Log_status_book;
 use App\Models\Permission;
@@ -603,9 +604,9 @@ class BookController extends Controller
             if ($update->save()) {
                 $this->editPdf_admin($positionX, $positionY, $pages, $update, $positionPages);
                 if ($positionPages == 2) {
-                    if($update->new_pages != 0){
+                    if ($update->new_pages != 0) {
                         $update->new_pages = $update->new_pages + 1;
-                    }else{
+                    } else {
                         $update->new_pages = $book->new_pages + 1;
                     }
                     $update->save();
@@ -1217,5 +1218,38 @@ class BookController extends Controller
 
         $outputPath = public_path('/storage/' . $data->file);
         $pdf->Output($outputPath, 'F');
+    }
+
+    public function directory_save(Request $request)
+    {
+        $input = $request->input();
+        $book = Book::where('id', $input['id'])->first();
+        if (!empty($book)) {
+            $update = Log_status_book::where('position_id', $this->position_id)->where('book_id', $input['id'])->first();
+            $update->status = 15;
+            $update->updated_at = date('Y-m-d H:i:s');
+            if ($update->save()) {
+                log_active([
+                    'users_id' => auth()->user()->id,
+                    'status' => 15,
+                    'datetime' => date('Y-m-d H:i:s'),
+                    'detail' => 'จัดเก็บหนังสือเข้าแฟ้ม',
+                    'book_id' => $input['id'],
+                    'position_id' => $update->position_id
+                ]);
+                $directorylogs = new Directory_log;
+                $directorylogs->book_id = $input['id'];
+                $directorylogs->position_id = $update->position_id;
+                $directorylogs->logs_id = $update->id;
+                $directorylogs->created_at = date('Y-m-d H:i:s');
+                $directorylogs->created_by = auth()->user()->id;
+                $directorylogs->updated_at = date('Y-m-d H:i:s');
+                $directorylogs->updated_by = auth()->user()->id;
+                $directorylogs->save();
+                $data['status'] = true;
+                $data['message'] = 'ลงบันทึกเกษียณหนังสือเรียบร้อย';
+            }
+        }
+        return response()->json($data);
     }
 }

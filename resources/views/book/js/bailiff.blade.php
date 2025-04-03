@@ -230,7 +230,7 @@
                         $('#exampleModal').modal('hide');
                         setTimeout(() => {
                             swal.close();
-                        }, 1000);
+                        }, 1500);
                         resetMarking();
                         removeMarkListener();
                         document.getElementById('manager-save').disabled = false;
@@ -583,7 +583,7 @@
                                 Swal.fire("", "บันทึกลายเซ็นเรียบร้อยแล้ว", "success");
                                 setTimeout(() => {
                                     location.reload();
-                                }, 1000);
+                                }, 1500);
                             } else {
                                 Swal.fire("", "บันทึกไม่สำเร็จ", "error");
                             }
@@ -690,7 +690,7 @@
                                 Swal.fire("", "แทงเรื่องเรียบร้อยแล้ว", "success");
                                 setTimeout(() => {
                                     location.reload();
-                                }, 1000);
+                                }, 1500);
                             } else {
                                 Swal.fire("", "แทงเรื่องไม่สำเร็จ", "error");
                             }

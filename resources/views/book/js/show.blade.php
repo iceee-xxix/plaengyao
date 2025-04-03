@@ -583,7 +583,7 @@
                                 Swal.fire("", "บันทึกเรียบร้อย", "success");
                                 setTimeout(() => {
                                     location.reload();
-                                }, 1000);
+                                }, 1500);
                             } else {
                                 Swal.fire("", "บันทึกไม่สำเร็จ", "error");
                             }
@@ -630,7 +630,7 @@
                                 Swal.fire("", "บันทึกเรียบร้อย", "success");
                                 setTimeout(() => {
                                     location.reload();
-                                }, 1000);
+                                }, 1500);
                             } else {
                                 Swal.fire("", "บันทึกไม่สำเร็จ", "error");
                             }
@@ -692,7 +692,7 @@
                                 Swal.fire("", "แทงเรื่องเรียบร้อยแล้ว", "success");
                                 setTimeout(() => {
                                     location.reload();
-                                }, 1000);
+                                }, 1500);
                             } else {
                                 Swal.fire("", "แทงเรื่องไม่สำเร็จ", "error");
                             }
@@ -797,7 +797,7 @@
                         Swal.fire("", "บันทึกเรียบร้อย", "success");
                         setTimeout(() => {
                             location.reload();
-                        }, 1000);
+                        }, 1500);
                     } else {
                         Swal.fire("", "บันทึกไม่สำเร็จ", "error");
                     }

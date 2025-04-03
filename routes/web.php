@@ -2,9 +2,9 @@
 
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\BooksenderController;
+use App\Http\Controllers\DirectoryController;
 use App\Http\Controllers\EmailController;
 use App\Http\Controllers\LoginController;
-use App\Http\Controllers\PDF;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TrackController;
@@ -50,6 +50,7 @@ Route::middleware('auth.admin')->group(function () {
     Route::post('/book/manager_stamp', [BookController::class, 'manager_stamp'])->name('book.manager_stamp');
     Route::post('/book/uploadPdf', [BookController::class, 'uploadPdf'])->name('bookSender.uploadPdf');
     Route::post('/book/number_save', [BookController::class, 'number_save'])->name('bookSender.number_save');
+    Route::post('/book/directory_save', [BookController::class, 'directory_save'])->name('bookSender.directory_save');
 
     Route::get('/users/listUsers', [UsersController::class, 'listUsers'])->name('users.listUsers');
     Route::get('/users/listData', [UsersController::class, 'listData'])->name('users.listData');
@@ -85,9 +86,12 @@ Route::middleware('auth.admin')->group(function () {
     Route::get('/permission/listData', [PermissionController::class, 'listData'])->name('permission.listData');
     Route::get('/permission/listDataPermission', [PermissionController::class, 'listDataPermission'])->name('permission.listDataPermission');
     Route::post('/permission/save', [PermissionController::class, 'save'])->name('permission.save');
+
+    Route::get('/directory', [DirectoryController::class, 'index'])->name('directory.index');
+    Route::get('/directory/create_directory', [DirectoryController::class, 'create_directory'])->name('directory.create_directory');
+    Route::post('/directory/listData', [DirectoryController::class, 'listData'])->name('directory.listData');
 });
 
 Route::get('/email', [EmailController::class, 'index'])->name('email.index');
-Route::get('/pdf', [PDF::class, 'index'])->name('pdf.index');
 
 require __DIR__ . '/auth.php';
