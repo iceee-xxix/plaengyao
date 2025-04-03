@@ -116,7 +116,7 @@
             }
             $text = '';
             if ($rec->status == 14) {
-                $text = '(เวียนหนังสือ)';
+                $text = '';
                 $color = 'success';
             }
             ?>
