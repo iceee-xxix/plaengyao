@@ -201,7 +201,20 @@ class BookController extends Controller
             $rec->url = url("storage/" . $rec->file);
             $rec->inputBookregistNumber = numberToThaiDigits($rec->inputBookregistNumber);
         }
-        $book_count = Book::count();
+        $book_count = new Book;
+        if ($this->permission_id == '1' || $this->permission_id == '2') {
+            $book_count = $book_count->select('books.*')->whereIn('status', $this->permission)->orderBy('created_at', 'desc')->count();
+        } else {
+            if ($this->position_id != null) {
+                $book_count = $book_count->where('log_status_books.position_id', $this->position_id);
+            }
+            $book_count = $book_count->select('books.*', 'log_status_books.status', 'log_status_books.file', 'log_status_books.position_id')
+                ->leftJoin('log_status_books', 'books.id', '=', 'log_status_books.book_id')
+                ->whereIn('log_status_books.status', $this->permission)
+                ->orderBy('created_at', 'desc')
+                ->count();
+        }
+        $book_count = $book_count;
         $data['totalPages'] = (int)ceil($book_count / 5);
         $data['book'] = $book;
         $item = Position::where('parent_id')->get();
@@ -232,11 +245,11 @@ class BookController extends Controller
         }
         $search = session('keyword');
         if (!empty($search)) {
-            $query = Book::whereRaw('inputSubject like "%' . $search . '%"')
+            $query = Book::whereRaw('(inputSubject like "%' . $search . '%"')
                 ->orWhereRaw('inputBookto like "%' . $search . '%"')
                 ->orWhereRaw('inputBookref like "%' . $search . '%"')
                 ->orWhereRaw('inputContent like "%' . $search . '%"')
-                ->orWhereRaw('inputNote like "%' . $search . '%"');
+                ->orWhereRaw('inputNote like "%' . $search . '%")');
             if ($this->permission_id == '1' || $this->permission_id == '2') {
                 $book = $query->select('books.*')->whereIn('status', $this->permission)->orderBy('created_at', 'desc')->limit(5)->offset($pages)->get();
             } else {
@@ -330,21 +343,22 @@ class BookController extends Controller
                 ->offset($pages)
                 ->get();
         }
+
         if (!empty($search)) {
-            $query = Book::whereRaw('inputSubject like "%' . $search . '%"')
+            $query = Book::whereRaw('(inputSubject like "%' . $search . '%"')
                 ->orWhereRaw('inputBookto like "%' . $search . '%"')
                 ->orWhereRaw('inputBookref like "%' . $search . '%"')
                 ->orWhereRaw('inputContent like "%' . $search . '%"')
-                ->orWhereRaw('inputNote like "%' . $search . '%"');
+                ->orWhereRaw('inputNote like "%' . $search . '%")');
             if ($this->permission_id == '1' || $this->permission_id == '2') {
             } else {
-                $query = $query->where('books.position_id', $this->position_id);
+                $query = $query->where('log_status_books.position_id', $this->position_id);
             }
         } else {
             $query = new Book;
             if ($this->permission_id == '1' || $this->permission_id == '2') {
             } else {
-                $query = $query->where('books.position_id', $this->position_id);
+                $query = $query->where('log_status_books.position_id', $this->position_id);
             }
         }
         if ($this->permission_id == '1' || $this->permission_id == '2') {

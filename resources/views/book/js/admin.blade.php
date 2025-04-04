@@ -731,6 +731,7 @@
                     $('#div-canvas').html('<div style="position: relative;"><canvas id="pdf-render"></canvas><canvas id="mark-layer" style="position: absolute; left: 0; top: 0;"></canvas></div>');
                     response.book.forEach(element => {
                         var color = 'info';
+                        var text = '';
                         if (element.type != 1) {
                             var color = 'warning';
                         }
