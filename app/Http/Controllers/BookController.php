@@ -253,7 +253,9 @@ class BookController extends Controller
             if ($this->permission_id == '1' || $this->permission_id == '2') {
                 $book = $query->select('books.*')->whereIn('status', $this->permission)->orderBy('created_at', 'desc')->limit(5)->offset($pages)->get();
             } else {
-                $query = $query->where('log_status_books.position_id', $this->position_id);
+                if ($this->position_id != null) {
+                    $query = $query->where('log_status_books.position_id', $this->position_id);
+                }
                 $book = $query->select('books.*', 'log_status_books.status', 'log_status_books.file')
                     ->leftJoin('log_status_books', 'books.id', '=', 'log_status_books.book_id')
                     ->whereIn('log_status_books.status', $this->permission)
@@ -272,7 +274,9 @@ class BookController extends Controller
                     ->offset($pages)
                     ->get();
             } else {
-                $query = $query->where('log_status_books.position_id', $this->position_id);
+                if ($this->position_id != null) {
+                    $query = $query->where('log_status_books.position_id', $this->position_id);
+                }
                 $book = $query->select('books.*', 'log_status_books.status', 'log_status_books.file')
                     ->leftJoin('log_status_books', 'books.id', '=', 'log_status_books.book_id')
                     ->whereIn('log_status_books.status', $this->permission)
@@ -318,13 +322,17 @@ class BookController extends Controller
                 ->orWhereRaw('inputNote like "%' . $search . '%")');
             if ($this->permission_id == '1' || $this->permission_id == '2') {
             } else {
-                $query = $query->where('log_status_books.position_id', $this->position_id);
+                if ($this->position_id != null) {
+                    $query = $query->where('log_status_books.position_id', $this->position_id);
+                }
             }
         } else {
             $query = new Book;
             if ($this->permission_id == '1' || $this->permission_id == '2') {
             } else {
-                $query = $query->where('log_status_books.position_id', $this->position_id);
+                if ($this->position_id != null) {
+                    $query = $query->where('log_status_books.position_id', $this->position_id);
+                }
             }
         }
         if ($this->permission_id == '1' || $this->permission_id == '2') {
@@ -352,13 +360,17 @@ class BookController extends Controller
                 ->orWhereRaw('inputNote like "%' . $search . '%")');
             if ($this->permission_id == '1' || $this->permission_id == '2') {
             } else {
-                $query = $query->where('log_status_books.position_id', $this->position_id);
+                if ($this->position_id != null) {
+                    $query = $query->where('log_status_books.position_id', $this->position_id);
+                }
             }
         } else {
             $query = new Book;
             if ($this->permission_id == '1' || $this->permission_id == '2') {
             } else {
-                $query = $query->where('log_status_books.position_id', $this->position_id);
+                if ($this->position_id != null) {
+                    $query = $query->where('log_status_books.position_id', $this->position_id);
+                }
             }
         }
         if ($this->permission_id == '1' || $this->permission_id == '2') {
