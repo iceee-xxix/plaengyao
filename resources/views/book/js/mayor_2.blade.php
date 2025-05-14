@@ -1,4 +1,25 @@
 @section('script')
+<audio id="notifySound" src="{{asset('sound/notification-1-337826.mp3')}}" preload="auto"></audio>
+<script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>
+<script>
+    const PUSHER_APP_KEY = "{{ env('PUSHER_APP_KEY') }}";
+    const PUSHER_APP_CLUSTER = "{{ env('PUSHER_APP_CLUSTER') }}";
+
+    Pusher.logToConsole = true;
+    var pusher = new Pusher(PUSHER_APP_KEY, {
+        cluster: PUSHER_APP_CLUSTER,
+        encrypted: true
+    });
+    var channel = pusher.subscribe('orders');
+    channel.bind('App\\Events\\OrderCreated', function(data) {
+        console.log(data.order[0]);
+        document.getElementById('notifySound').play();
+        Swal.fire({
+            icon: 'info',
+            title: data.order[0],
+        })
+    });
+</script>
 <?php $position = [1 => 'สำนักงานปลัด', 2 => 'งานกิจการสภา', 3 => 'กองคลัง', 4 => 'กองช่าง', 5 => 'กองการศึกษา ศาสนาและวัฒนธรรม', 6 => 'ฝ่ายศูนย์รับเรื่องร้องเรียน-ร้องทุกข์', 7 => 'ฝ่ายเลือกตั้ง', 8 => 'ฝ่ายสปสช.', 9 => 'ศูนย์ข้อมูลข่าวสาร']; ?>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />

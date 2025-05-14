@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\OrderCreated;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Book;
@@ -830,6 +831,9 @@ class BookController extends Controller
                 }
                 $getForward = User::find($users_id);
                 $sql = Permission::where('id', $getForward->permission_id)->first();
+                if ($sql->can_status == '12,13') {
+                    event(new OrderCreated(['เอกสารเข้าใหม่']));
+                }
                 $update->parentUsers = $users_id;
             }
             $update->status = $status;
